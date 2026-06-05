@@ -1,5 +1,5 @@
 import { supabase } from '../supabase'
-import type { DashboardData } from '../../types'
+import type { DashboardData, TargetProgress } from '../../types'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -23,11 +23,65 @@ function startOfYear() {
   return d
 }
 
+async function getTargetProgress(): Promise<TargetProgress | null> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10)
+
+  const [targetsRes, paymentsRes] = await Promise.all([
+    supabase
+      .from('targets')
+      .select('*')
+      .eq('target_type', 'revenue')
+      .eq('user_id', user.id)
+      .lte('start_date', monthEnd)
+      .gte('end_date', monthStart)
+      .order('created_at', { ascending: false })
+      .limit(1),
+    supabase
+      .from('payments')
+      .select('amount')
+      .eq('status', 'completed')
+      .gte('payment_date', monthStart)
+      .lte('payment_date', monthEnd),
+  ])
+
+  if (targetsRes.error) throw targetsRes.error
+  if (paymentsRes.error) throw paymentsRes.error
+
+  const target = targetsRes.data?.[0] ?? null
+  const currentRevenue = (paymentsRes.data ?? []).reduce((s, p) => s + Number(p.amount), 0)
+
+  if (!target) {
+    return { target: null, currentRevenue, remaining: 0, percentage: 0, dailyNeeded: 0 }
+  }
+
+  const targetVal = Number(target.target_value)
+  const remaining = Math.max(0, targetVal - currentRevenue)
+  const percentage = targetVal > 0 ? Math.min(100, Math.round((currentRevenue / targetVal) * 100)) : 0
+
+  const daysLeft = Math.ceil(
+    (new Date(monthEnd).getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  )
+  const dailyNeeded = daysLeft > 0 && remaining > 0 ? remaining / daysLeft : 0
+
+  return {
+    target,
+    currentRevenue,
+    remaining,
+    percentage,
+    dailyNeeded: Math.round(dailyNeeded * 100) / 100,
+  }
+}
+
 export async function getDashboardData(): Promise<DashboardData> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  const [projectsRes, paymentsRes, expensesRes] = await Promise.all([
+  const [projectsRes, paymentsRes, expensesRes, targetProgress] = await Promise.all([
     supabase
       .from('projects')
       .select('id, name, status, budget, end_date, client_name'),
@@ -38,6 +92,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     supabase
       .from('expenses')
       .select('id, amount, expense_date, category, description, project_id'),
+    getTargetProgress(),
   ])
 
   if (projectsRes.error) throw projectsRes.error
@@ -92,7 +147,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     profit: Math.round((v - monthlyExpensesArr[i]) * 100) / 100,
   }))
 
-  // Recent items (sorted by end_date descending for projects, payment_date for payments, expense_date for expenses)
+  // Recent items
   const sortedProjects = [...projects].sort((a, b) => {
     const da = a.end_date ? new Date(a.end_date).getTime() : 0
     const db = b.end_date ? new Date(b.end_date).getTime() : 0
@@ -105,11 +160,17 @@ export async function getDashboardData(): Promise<DashboardData> {
     (a, b) => new Date(b.expense_date).getTime() - new Date(a.expense_date).getTime(),
   )
 
-  // Projects with upcoming end dates (nearest future first)
+  // Upcoming due dates
   const now = new Date()
   const upcoming = [...projects]
     .filter(p => p.end_date && new Date(p.end_date) >= now)
     .sort((a, b) => new Date(a.end_date!).getTime() - new Date(b.end_date!).getTime())
+
+  // Overdue projects (past end_date, not completed/cancelled)
+  const overdue = projects.filter(p => {
+    if (!p.end_date) return false
+    return p.status !== 'completed' && p.status !== 'cancelled' && new Date(p.end_date) < now
+  })
 
   return {
     totalProjects,
@@ -127,5 +188,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     recentPayments: sortedPayments.slice(0, 5),
     recentExpenses: sortedExpenses.slice(0, 5),
     upcomingDueDates: upcoming.slice(0, 5),
+    overdueProjects: overdue.slice(0, 5),
+    targetProgress,
   }
 }

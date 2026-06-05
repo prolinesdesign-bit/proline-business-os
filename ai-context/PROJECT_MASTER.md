@@ -25,7 +25,9 @@ src/
 │       ├── clients.ts       — Clients CRUD + search + project stats
 │       ├── payments.ts      — Payments CRUD + project summaries
 │       ├── expenses.ts      — Expenses CRUD + summary
-│       └── dashboard.ts     — Dashboard KPIs + charts + widgets
+│       ├── dashboard.ts     — Dashboard KPIs + charts + widgets
+│       ├── calendar.ts      — Calendar events from project dates
+│       └── targets.ts       — Targets CRUD + monthly progress
 ├── types/
 │   └── index.ts             — Database model types
 ├── context/AuthContext.tsx   — Auth provider + hooks
@@ -39,8 +41,10 @@ src/
 │   │   └── ClientForm.tsx    — Add/edit client modal
 │   ├── payments/
 │   │   └── PaymentForm.tsx   — Add/edit payment modal
-│   └── expenses/
-│       └── ExpenseForm.tsx   — Add/edit expense modal
+│   ├── expenses/
+│   │   └── ExpenseForm.tsx   — Add/edit expense modal
+│   └── targets/
+│       └── TargetForm.tsx    — Add/edit target modal
 ├── pages/
 │   ├── Login.tsx
 │   ├── SignUp.tsx
@@ -48,6 +52,8 @@ src/
 │   ├── Projects.tsx          — Projects list + search + CRUD
 │   ├── Clients.tsx           — Clients list + search + CRUD
 │   ├── Dashboard.tsx          — Dashboard KPIs, charts, widgets
+│   ├── Calendar.tsx           — Month view with project dates
+│   ├── Targets.tsx            — Targets list + monthly progress
 │   ├── Payments.tsx          — Payments list + project summaries + CRUD
 │   └── Expenses.tsx          — Expenses list + summary + CRUD
 ├── App.tsx                   — Routes
@@ -60,6 +66,7 @@ src/
 - `v0.3-projects` — Projects CRUD
 - `v0.4-crm` — Client CRM
 - `v0.5-business-core` — Payments, Expenses, Dashboard
+- `v0.6-dashboard` — Dashboard, INR currency, audit report
 
 ## Git
 
@@ -95,14 +102,13 @@ for Proline Architects & Builders.
 ## Future Modules
 
 * Money Flow
-* Calendar
 * Documents
 * Site Visits
 * AI Insights
 
 ## Current Phase
 
-Phase 6: Dashboard
+Phase 7: Calendar + Targets
 
 Completed:
 
@@ -117,6 +123,8 @@ Completed:
 * Payments
 * Expenses
 * Dashboard
+* Calendar
+* Targets
 
 Next:
 

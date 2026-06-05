@@ -76,6 +76,8 @@ export default function Dashboard() {
           <Link to="/clients" className="text-sm text-blue-600 hover:underline">Clients</Link>
           <Link to="/payments" className="text-sm text-blue-600 hover:underline">Payments</Link>
           <Link to="/expenses" className="text-sm text-blue-600 hover:underline">Expenses</Link>
+          <Link to="/targets" className="text-sm text-blue-600 hover:underline">Targets</Link>
+          <Link to="/calendar" className="text-sm text-blue-600 hover:underline">Calendar</Link>
           <button onClick={signOut} className="rounded-lg border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50">
             Logout
           </button>
@@ -142,33 +144,101 @@ export default function Dashboard() {
         </div>
 
         {/* Widgets */}
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          {/* Recent Projects */}
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+          {/* Target Progress */}
+          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm lg:col-span-3">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">Monthly Target Progress</h3>
+              <Link to="/targets" className="text-xs text-blue-600 hover:underline">Manage targets</Link>
+            </div>
+            {data.targetProgress && data.targetProgress.target ? (
+              <div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-3">
+                  <div>
+                    <p className="text-xs text-gray-500">Target</p>
+                    <p className="text-lg font-bold">₹{Math.round(data.targetProgress.target.target_value).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Current</p>
+                    <p className="text-lg font-bold text-green-600">₹{Math.round(data.targetProgress.currentRevenue).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Remaining</p>
+                    <p className="text-lg font-bold text-amber-600">₹{Math.round(data.targetProgress.remaining).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Daily Needed</p>
+                    <p className="text-lg font-bold text-orange-600">₹{Math.round(data.targetProgress.dailyNeeded).toLocaleString()}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-2.5 overflow-hidden rounded-full bg-gray-100">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        data.targetProgress.percentage >= 100 ? 'bg-green-500' :
+                        data.targetProgress.percentage >= 75 ? 'bg-blue-500' :
+                        data.targetProgress.percentage >= 50 ? 'bg-amber-500' :
+                        'bg-orange-500'
+                      }`}
+                      style={{ width: `${Math.min(100, data.targetProgress.percentage)}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium">{data.targetProgress.percentage}%</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No target set for this month. <Link to="/targets" className="text-blue-600 hover:underline">Set one now.</Link></p>
+            )}
+          </div>
+
+          {/* Overdue Projects */}
           <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold">Recent Projects</h3>
+              <h3 className="font-semibold text-red-700">Overdue Projects</h3>
               <Link to="/projects" className="text-xs text-blue-600 hover:underline">View all</Link>
             </div>
-            {data.recentProjects.length === 0 ? (
-              <p className="text-sm text-gray-500">No projects yet.</p>
+            {data.overdueProjects.length === 0 ? (
+              <p className="text-sm text-gray-500">No overdue projects.</p>
             ) : (
               <div className="space-y-2">
-                {data.recentProjects.map(p => (
+                {data.overdueProjects.map(p => (
+                  <div key={p.id} className="flex items-center justify-between rounded-lg bg-red-50 px-3 py-2">
+                    <div>
+                      <p className="text-sm font-medium">{p.name}</p>
+                      <p className="text-xs text-red-600">{p.end_date ? daysUntil(p.end_date) : ''}</p>
+                    </div>
+                    <p className="text-xs text-red-600">{formatDate(p.end_date!)}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Upcoming & Due This Week */}
+          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">Upcoming Due Dates</h3>
+              <Link to="/projects" className="text-xs text-blue-600 hover:underline">View all</Link>
+            </div>
+            {data.upcomingDueDates.length === 0 ? (
+              <p className="text-sm text-gray-500">No upcoming due dates.</p>
+            ) : (
+              <div className="space-y-2">
+                {data.upcomingDueDates.slice(0, 5).map(p => (
                   <div key={p.id} className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
                     <div>
                       <p className="text-sm font-medium">{p.name}</p>
                       <p className="text-xs text-gray-500">{p.client_name ?? 'No client'}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium">₹{Number(p.budget ?? 0).toLocaleString()}</p>
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                        p.status === 'active' ? 'bg-green-100 text-green-700' :
-                        p.status === 'completed' ? 'bg-blue-100 text-blue-700' :
-                        p.status === 'on_hold' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-gray-100 text-gray-700'
+                      <p className="text-sm font-medium">{formatDate(p.end_date!)}</p>
+                      <p className={`text-xs font-medium ${
+                        daysUntil(p.end_date!) === 'Overdue' ? 'text-red-600' :
+                        daysUntil(p.end_date!).includes('Today') || daysUntil(p.end_date!).includes('Tomorrow') ? 'text-orange-600' :
+                        'text-gray-500'
                       }`}>
-                        {p.status}
-                      </span>
+                        {daysUntil(p.end_date!)}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -176,7 +246,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Recent Payments */}
+          {/* Recent Activity combined */}
           <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold">Recent Payments</h3>
@@ -192,7 +262,7 @@ export default function Dashboard() {
                       <p className="text-sm font-medium">₹{Number(p.amount).toLocaleString()}</p>
                       <p className="text-xs text-gray-500">{formatDate(p.payment_date)}</p>
                     </div>
-                    <p className="text-xs text-gray-500 truncate max-w-[150px]">{p.description ?? '—'}</p>
+                    <p className="text-xs text-gray-500 truncate max-w-[120px]">{p.description ?? '—'}</p>
                   </div>
                 ))}
               </div>
@@ -219,38 +289,6 @@ export default function Dashboard() {
                       <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
                         {e.category}
                       </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Upcoming Due Dates */}
-          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold">Upcoming Due Dates</h3>
-              <Link to="/projects" className="text-xs text-blue-600 hover:underline">View all</Link>
-            </div>
-            {data.upcomingDueDates.length === 0 ? (
-              <p className="text-sm text-gray-500">No upcoming due dates.</p>
-            ) : (
-              <div className="space-y-2">
-                {data.upcomingDueDates.map(p => (
-                  <div key={p.id} className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-                    <div>
-                      <p className="text-sm font-medium">{p.name}</p>
-                      <p className="text-xs text-gray-500">{p.client_name ?? 'No client'}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{formatDate(p.end_date!)}</p>
-                      <p className={`text-xs font-medium ${
-                        daysUntil(p.end_date!) === 'Overdue' ? 'text-red-600' :
-                        daysUntil(p.end_date!).includes('Today') || daysUntil(p.end_date!).includes('Tomorrow') ? 'text-orange-600' :
-                        'text-gray-500'
-                      }`}>
-                        {daysUntil(p.end_date!)}
-                      </p>
                     </div>
                   </div>
                 ))}

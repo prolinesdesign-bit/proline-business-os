@@ -8,6 +8,8 @@ import Projects from './pages/Projects'
 import Clients from './pages/Clients'
 import Payments from './pages/Payments'
 import Expenses from './pages/Expenses'
+import Calendar from './pages/Calendar'
+import Targets from './pages/Targets'
 
 export default function App() {
   return (
@@ -60,6 +62,22 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Expenses />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/calendar"
+        element={
+          <ProtectedRoute>
+            <Calendar />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/targets"
+        element={
+          <ProtectedRoute>
+            <Targets />
           </ProtectedRoute>
         }
       />

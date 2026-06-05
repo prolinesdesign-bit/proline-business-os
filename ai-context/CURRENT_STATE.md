@@ -15,9 +15,10 @@
 - **Client CRM module** — CRUD, search, name, phone, whatsapp, email, location, notes, project counts, total project value, last updated date
 - **Payments module** — CRUD, linked to projects, date, amount, notes, per-project summaries with value / total paid / balance due (calculated dynamically)
 - **Expenses module** — CRUD, date, amount, category (Software/Internet/Travel/Site Visit/Printing/Marketing/Salary/Freelancers/Miscellaneous), description, optional linked project, monthly/yearly totals, category breakdown
-- **Dashboard** — Home page after login, KPI cards (Total Projects, Active Projects, Total Project Value, Total Paid, Outstanding Balance, Total Expenses, Net Profit, Due This Week), monthly Revenue/Expenses/Profit bar charts (Recharts), Recent Projects/Payments/Expenses/Upcoming Due Dates widgets
+- **Dashboard** — Home page after login, KPI cards, monthly Revenue/Expenses/Profit bar charts, Recent Payments/Expenses widgets, Monthly Target Progress, Overdue Projects, Upcoming Due Dates widgets
+- **Calendar module** — Month view with project start/due dates, color-coded by stage, overdue highlighting, this-week ring, day detail popup
+- **Targets module** — CRUD for revenue targets, this-month progress with daily needed amount, progress bar, overdue/missed tracking
 
 ## Not Started
 
 - Tasks
-- Targets

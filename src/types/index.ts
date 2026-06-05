@@ -143,6 +143,54 @@ export interface ExpenseSummary {
   by_category: { category: string; total: number }[]
 }
 
+export interface Target {
+  id: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  title: string
+  description: string | null
+  target_type: 'revenue' | 'leads' | 'projects' | 'custom'
+  target_value: number
+  current_value: number
+  start_date: string
+  end_date: string
+  status: 'active' | 'achieved' | 'missed'
+}
+
+export type TargetFormData = {
+  title: string
+  target_value: string
+  start_date: string
+  end_date: string
+}
+
+export interface TargetProgress {
+  target: Target | null
+  currentRevenue: number
+  remaining: number
+  percentage: number
+  dailyNeeded: number
+}
+
+export interface CalendarDay {
+  date: Date
+  day: number
+  isCurrentMonth: boolean
+  isToday: boolean
+  isThisWeek: boolean
+  events: CalendarEvent[]
+}
+
+export interface CalendarEvent {
+  id: string
+  name: string
+  client_name: string | null
+  status: string
+  type: 'start' | 'due'
+  date: string
+}
+
 export interface DashboardData {
   totalProjects: number
   activeProjects: number
@@ -159,4 +207,6 @@ export interface DashboardData {
   recentPayments: Pick<Payment, 'id' | 'amount' | 'payment_date' | 'description' | 'project_id'>[]
   recentExpenses: Pick<Expense, 'id' | 'amount' | 'expense_date' | 'category' | 'description' | 'project_id'>[]
   upcomingDueDates: Pick<Project, 'id' | 'name' | 'end_date' | 'client_name'>[]
+  overdueProjects: Pick<Project, 'id' | 'name' | 'status' | 'end_date' | 'client_name'>[]
+  targetProgress: TargetProgress | null
 }
