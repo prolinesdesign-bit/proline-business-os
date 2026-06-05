@@ -66,7 +66,7 @@ export default function PaymentForm({ projects, payment, onSave, onCancel }: Pro
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Amount ($)</label>
+            <label className="block text-sm font-medium text-gray-700">Amount (₹)</label>
             <input
               type="number"
               required

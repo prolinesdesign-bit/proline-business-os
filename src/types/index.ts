@@ -142,3 +142,21 @@ export interface ExpenseSummary {
   year_total: number
   by_category: { category: string; total: number }[]
 }
+
+export interface DashboardData {
+  totalProjects: number
+  activeProjects: number
+  totalProjectValue: number
+  totalPaid: number
+  outstandingBalance: number
+  totalExpenses: number
+  netProfit: number
+  projectsDueThisWeek: number
+  monthlyRevenue: { month: string; revenue: number }[]
+  monthlyExpenses: { month: string; expenses: number }[]
+  monthlyProfit: { month: string; profit: number }[]
+  recentProjects: Pick<Project, 'id' | 'name' | 'status' | 'budget' | 'end_date' | 'client_name'>[]
+  recentPayments: Pick<Payment, 'id' | 'amount' | 'payment_date' | 'description' | 'project_id'>[]
+  recentExpenses: Pick<Expense, 'id' | 'amount' | 'expense_date' | 'category' | 'description' | 'project_id'>[]
+  upcomingDueDates: Pick<Project, 'id' | 'name' | 'end_date' | 'client_name'>[]
+}

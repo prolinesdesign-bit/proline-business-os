@@ -24,7 +24,8 @@ src/
 │       ├── projects.ts      — Projects CRUD + search
 │       ├── clients.ts       — Clients CRUD + search + project stats
 │       ├── payments.ts      — Payments CRUD + project summaries
-│       └── expenses.ts      — Expenses CRUD + summary
+│       ├── expenses.ts      — Expenses CRUD + summary
+│       └── dashboard.ts     — Dashboard KPIs + charts + widgets
 ├── types/
 │   └── index.ts             — Database model types
 ├── context/AuthContext.tsx   — Auth provider + hooks
@@ -46,6 +47,7 @@ src/
 │   ├── AuthCallback.tsx
 │   ├── Projects.tsx          — Projects list + search + CRUD
 │   ├── Clients.tsx           — Clients list + search + CRUD
+│   ├── Dashboard.tsx          — Dashboard KPIs, charts, widgets
 │   ├── Payments.tsx          — Payments list + project summaries + CRUD
 │   └── Expenses.tsx          — Expenses list + summary + CRUD
 ├── App.tsx                   — Routes
@@ -57,6 +59,7 @@ src/
 - `v0.2-auth` — Authentication complete
 - `v0.3-projects` — Projects CRUD
 - `v0.4-crm` — Client CRM
+- `v0.5-business-core` — Payments, Expenses, Dashboard
 
 ## Git
 
@@ -92,7 +95,6 @@ for Proline Architects & Builders.
 ## Future Modules
 
 * Money Flow
-* Dashboard
 * Calendar
 * Documents
 * Site Visits
@@ -100,7 +102,7 @@ for Proline Architects & Builders.
 
 ## Current Phase
 
-Phase 5: Expenses
+Phase 6: Dashboard
 
 Completed:
 
@@ -114,6 +116,7 @@ Completed:
 * Client CRM
 * Payments
 * Expenses
+* Dashboard
 
 Next:
 

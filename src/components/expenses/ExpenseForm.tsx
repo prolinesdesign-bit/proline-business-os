@@ -75,7 +75,7 @@ export default function ExpenseForm({ expense, projects, onSave, onCancel }: Pro
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Amount ($)</label>
+              <label className="block text-sm font-medium text-gray-700">Amount (₹)</label>
               <input
                 required
                 type="number"

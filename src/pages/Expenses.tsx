@@ -76,11 +76,11 @@ export default function Expenses() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
               <p className="text-xs font-medium uppercase tracking-wide text-gray-500">This Month</p>
-              <p className="mt-1 text-2xl font-bold text-blue-600">${summary.month_total.toLocaleString()}</p>
+              <p className="mt-1 text-2xl font-bold text-blue-600">₹{summary.month_total.toLocaleString()}</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
               <p className="text-xs font-medium uppercase tracking-wide text-gray-500">This Year</p>
-              <p className="mt-1 text-2xl font-bold text-green-600">${summary.year_total.toLocaleString()}</p>
+              <p className="mt-1 text-2xl font-bold text-green-600">₹{summary.year_total.toLocaleString()}</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
               <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Categories</p>
@@ -88,7 +88,7 @@ export default function Expenses() {
                 {summary.by_category.slice(0, 5).map(c => (
                   <div key={c.category} className="flex justify-between text-sm">
                     <span className="text-gray-600">{c.category}</span>
-                    <span className="font-medium">${c.total.toLocaleString()}</span>
+                    <span className="font-medium">₹{c.total.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
@@ -138,7 +138,7 @@ export default function Expenses() {
                           {e.category}
                         </span>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap font-medium">${Number(e.amount).toLocaleString()}</td>
+                      <td className="px-4 py-3 whitespace-nowrap font-medium">₹{Number(e.amount).toLocaleString()}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">{project?.name ?? '—'}</td>
                       <td className="px-4 py-3 max-w-[200px] truncate text-gray-500">{e.description ?? '—'}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-right">
@@ -178,7 +178,7 @@ export default function Expenses() {
           <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
             <h2 className="text-lg font-bold">Delete Expense</h2>
             <p className="mt-2 text-sm text-gray-600">
-              Delete ${Number(deleting.amount).toLocaleString()} expense? This cannot be undone.
+              Delete ₹{Number(deleting.amount).toLocaleString()} expense? This cannot be undone.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button

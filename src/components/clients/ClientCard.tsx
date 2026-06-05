@@ -35,7 +35,7 @@ export default function ClientCard({ client, stats, onEdit, onDelete }: Props) {
         </span>
         {stats.total_value > 0 && (
           <span className="font-medium text-green-700">
-            ${stats.total_value.toLocaleString()}
+            ₹{stats.total_value.toLocaleString()}
           </span>
         )}
         {lastUpdated && (

@@ -76,16 +76,16 @@ export default function Payments() {
                 <div className="mt-2 space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Project Value</span>
-                    <span className="font-medium">${s.project_value.toLocaleString()}</span>
+                    <span className="font-medium">₹{s.project_value.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Total Paid</span>
-                    <span className="font-medium text-green-600">${s.total_paid.toLocaleString()}</span>
+                    <span className="font-medium text-green-600">₹{s.total_paid.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between border-t border-gray-100 pt-1">
                     <span className="text-gray-500">Balance Due</span>
                     <span className={`font-semibold ${s.balance_due > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      ${s.balance_due.toLocaleString()}
+                      ₹{s.balance_due.toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -93,7 +93,7 @@ export default function Payments() {
             ))}
           </div>
           <div className="mt-3 text-right text-sm text-gray-500">
-            Total Outstanding: <span className="font-semibold text-red-600">${totalOutstanding.toLocaleString()}</span>
+            Total Outstanding: <span className="font-semibold text-red-600">₹{totalOutstanding.toLocaleString()}</span>
           </div>
         </div>
       )}
@@ -125,7 +125,7 @@ export default function Payments() {
                     <tr key={p.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 whitespace-nowrap">{p.payment_date}</td>
                       <td className="px-4 py-3 whitespace-nowrap">{project?.name ?? '—'}</td>
-                      <td className="px-4 py-3 whitespace-nowrap font-medium">${Number(p.amount).toLocaleString()}</td>
+                      <td className="px-4 py-3 whitespace-nowrap font-medium">₹{Number(p.amount).toLocaleString()}</td>
                       <td className="px-4 py-3 max-w-[200px] truncate text-gray-500">{p.description ?? '—'}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-right">
                         <button onClick={() => { setEditing(p); setShowForm(true) }} className="text-blue-600 hover:underline">Edit</button>
@@ -154,7 +154,7 @@ export default function Payments() {
           <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
             <h2 className="text-lg font-bold">Delete Payment</h2>
             <p className="mt-2 text-sm text-gray-600">
-              Delete ${Number(deleting.amount).toLocaleString()} payment? This cannot be undone.
+              Delete ₹{Number(deleting.amount).toLocaleString()} payment? This cannot be undone.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button onClick={() => setDeleting(null)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">

@@ -100,7 +100,7 @@ export default function ProjectForm({ project, onSave, onCancel }: Props) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Project Value ($)</label>
+              <label className="block text-sm font-medium text-gray-700">Project Value (₹)</label>
               <input
                 type="number"
                 min="0"

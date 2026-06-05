@@ -32,7 +32,7 @@ export default function ProjectCard({ project, onEdit, onDelete }: Props) {
 
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
         {project.budget != null && (
-          <span>${Number(project.budget).toLocaleString()}</span>
+          <span>₹{Number(project.budget).toLocaleString()}</span>
         )}
         {project.start_date && <span>Start: {project.start_date}</span>}
         {project.end_date && <span>Due: {project.end_date}</span>}
