@@ -1,3 +1,3 @@
 # Next Task
 
-Create database schema and connect frontend to Supabase.
+Run the SQL schema in Supabase SQL Editor, then build the CRM (clients) module.

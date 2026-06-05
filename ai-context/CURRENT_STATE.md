@@ -1,23 +1,24 @@
 # Current State
 
-Completed:
+## Completed
 
-* ReacPut this in ``:t + Vite setup
-* TypeScript setup
-* Git repository
-* GitHub repository
-* Supabase project
-* Environment variables
+- React + Vite + TypeScript project scaffolded
+- Tailwind CSS v4 configured
+- Git + GitHub repository set up
+- Supabase project connected
+- Environment variables configured
+- Supabase Auth (email/password, Google OAuth)
+- Protected routes with redirect to login
+- Session persistence with `onAuthStateChange`
+- Tagged: `v0.2-auth`
+- **Projects module** — CRUD, search, stage dropdown, value, client name, dates, notes
 
-Not Started:
+## Not Started
 
-* Database tables
-* Authentication
-* Projects module
-* CRM
-* Payments
-* Expenses
-* Dashboard
-
-Next Task:
-Create database schema and connect frontend to Supabase.
+- Run database schema in Supabase
+- CRM (clients)
+- Payments
+- Expenses
+- Tasks
+- Targets
+- Dashboard UI
