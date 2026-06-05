@@ -49,3 +49,96 @@ export interface ClientStats {
   project_count: number
   total_value: number
 }
+
+export interface Payment {
+  id: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  client_id: string
+  project_id: string | null
+  amount: number
+  currency: string
+  payment_date: string
+  method: 'credit_card' | 'bank_transfer' | 'cash' | 'paypal' | 'stripe' | 'other'
+  status: 'pending' | 'completed' | 'refunded' | 'failed'
+  description: string | null
+}
+
+export type PaymentFormData = {
+  project_id: string
+  amount: string
+  payment_date: string
+  description: string
+}
+
+export interface ProjectPaymentSummary {
+  project_id: string
+  project_name: string
+  project_value: number
+  total_paid: number
+  balance_due: number
+}
+
+export const EXPENSE_CATEGORIES = [
+  'Software',
+  'Internet',
+  'Travel',
+  'Site Visit',
+  'Printing',
+  'Marketing',
+  'Salary',
+  'Freelancers',
+  'Miscellaneous',
+] as const
+
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]
+
+export const CATEGORY_TO_DB: Record<string, string> = {
+  Software: 'software',
+  Internet: 'utilities',
+  Travel: 'travel',
+  'Site Visit': 'other',
+  Printing: 'materials',
+  Marketing: 'other',
+  Salary: 'contractor',
+  Freelancers: 'contractor',
+  Miscellaneous: 'other',
+}
+
+export const DB_TO_CATEGORY: Record<string, string> = {
+  software: 'Software',
+  utilities: 'Internet',
+  travel: 'Travel',
+  other: 'Miscellaneous',
+  materials: 'Printing',
+  contractor: 'Freelancers',
+}
+
+export interface Expense {
+  id: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  project_id: string | null
+  amount: number
+  currency: string
+  expense_date: string
+  category: string
+  description: string | null
+  receipt_url: string | null
+}
+
+export type ExpenseFormData = {
+  project_id: string
+  amount: string
+  expense_date: string
+  category: string
+  description: string
+}
+
+export interface ExpenseSummary {
+  month_total: number
+  year_total: number
+  by_category: { category: string; total: number }[]
+}

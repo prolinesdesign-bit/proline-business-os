@@ -22,7 +22,9 @@ src/
 │   ├── supabase.ts          — Supabase client
 │   └── api/
 │       ├── projects.ts      — Projects CRUD + search
-│       └── clients.ts       — Clients CRUD + search + project stats
+│       ├── clients.ts       — Clients CRUD + search + project stats
+│       ├── payments.ts      — Payments CRUD + project summaries
+│       └── expenses.ts      — Expenses CRUD + summary
 ├── types/
 │   └── index.ts             — Database model types
 ├── context/AuthContext.tsx   — Auth provider + hooks
@@ -31,15 +33,21 @@ src/
 │   ├── projects/
 │   │   ├── ProjectCard.tsx   — Project display card
 │   │   └── ProjectForm.tsx   — Add/edit project modal
-│   └── clients/
-│       ├── ClientCard.tsx    — Client display card with stats
-│       └── ClientForm.tsx    — Add/edit client modal
+│   ├── clients/
+│   │   ├── ClientCard.tsx    — Client display card with stats
+│   │   └── ClientForm.tsx    — Add/edit client modal
+│   ├── payments/
+│   │   └── PaymentForm.tsx   — Add/edit payment modal
+│   └── expenses/
+│       └── ExpenseForm.tsx   — Add/edit expense modal
 ├── pages/
 │   ├── Login.tsx
 │   ├── SignUp.tsx
 │   ├── AuthCallback.tsx
 │   ├── Projects.tsx          — Projects list + search + CRUD
-│   └── Clients.tsx           — Clients list + search + CRUD
+│   ├── Clients.tsx           — Clients list + search + CRUD
+│   ├── Payments.tsx          — Payments list + project summaries + CRUD
+│   └── Expenses.tsx          — Expenses list + summary + CRUD
 ├── App.tsx                   — Routes
 └── main.tsx                  — Entry point
 ```
@@ -48,6 +56,7 @@ src/
 
 - `v0.2-auth` — Authentication complete
 - `v0.3-projects` — Projects CRUD
+- `v0.4-crm` — Client CRM
 
 ## Git
 
@@ -91,7 +100,7 @@ for Proline Architects & Builders.
 
 ## Current Phase
 
-Phase 3: Client CRM
+Phase 5: Expenses
 
 Completed:
 
@@ -103,7 +112,9 @@ Completed:
 * Database Schema
 * Projects CRUD
 * Client CRM
+* Payments
+* Expenses
 
 Next:
 
-* Payments
+* Tasks
