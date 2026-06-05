@@ -10,7 +10,6 @@
 - Supabase Auth (email/password, Google OAuth)
 - Protected routes with redirect to login
 - Session persistence with `onAuthStateChange`
-- Tagged: `v0.2-auth`
 - **Projects module** — CRUD, search, stage dropdown, value, client name, dates, notes, document count per project, View Documents button
 - **Client CRM module** — CRUD, search, name, phone, whatsapp, email, location, notes, project counts, total project value, last updated date
 - **Payments module** — CRUD, linked to projects, date, amount, notes, per-project summaries with value / total paid / balance due (calculated dynamically)
@@ -19,7 +18,9 @@
 - **Calendar module** — Month view with project start/due dates, color-coded by stage, overdue highlighting, this-week ring, day detail popup
 - **Targets module** — CRUD for revenue targets, this-month progress with daily needed amount, progress bar, overdue/missed tracking
 - **Tasks module** — CRUD, title, description, priority (low/medium/high/urgent), due date, link to project, inline status dropdown for quick status changes, filter by project ID
-- **Documents module** — Upload (PDF/JPG/PNG/DOCX, 10MB limit), view/download via signed URL, delete, link to project, filter by project, Supabase Storage with RLS, document metadata table with migration SQL
+- **Documents module** — Upload (PDF/JPG/PNG/DOCX, 10MB limit), preview modal (PDF via iframe, images inline, DOCX shows download prompt), download button via signed URL, delete, link to project, filter by project, Supabase Storage with RLS, document metadata table with migration SQL
+
+- Tagged: `v0.8-documents`
 
 ## Not Started
 
