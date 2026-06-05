@@ -5,12 +5,20 @@ import { getFollowUpsByClient } from '../lib/api/followups'
 import ClientCard from '../components/clients/ClientCard'
 import ClientForm from '../components/clients/ClientForm'
 import WhatsAppModal from '../components/WhatsAppModal'
+import AppLayout from '../components/layout/AppLayout'
+import { Button } from '../components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
+import { Input } from '../components/ui/Input'
+import { Badge } from '../components/ui/Badge'
+import { toast } from 'sonner'
+import { CardSkeleton } from '../components/ui/Skeleton'
+import { EmptyState } from '../components/ui/EmptyState'
 
-const statusColors: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  contacted: 'bg-blue-100 text-blue-800',
-  waiting_client: 'bg-purple-100 text-purple-800',
-  closed: 'bg-green-100 text-green-800',
+const statusBadge: Record<string, 'warning' | 'default' | 'purple' | 'success'> = {
+  pending: 'warning',
+  contacted: 'default',
+  waiting_client: 'purple',
+  closed: 'success',
 }
 
 function formatDate(d: string | null) {
@@ -47,21 +55,31 @@ export default function Clients() {
   }, [fetch])
 
   async function handleSave(data: ClientFormData) {
-    if (editing) {
-      await updateClient(editing.id, data)
-    } else {
-      await createClient(data)
+    try {
+      if (editing) {
+        await updateClient(editing.id, data)
+      } else {
+        await createClient(data)
+      }
+      toast.success('Client saved')
+      setShowForm(false)
+      setEditing(null)
+      fetch()
+    } catch (err: any) {
+      toast.error(err.message)
     }
-    setShowForm(false)
-    setEditing(null)
-    fetch()
   }
 
   async function handleDelete() {
     if (!deleting) return
-    await deleteClient(deleting.id)
-    setDeleting(null)
-    fetch()
+    try {
+      await deleteClient(deleting.id)
+      toast.success('Client deleted')
+      setDeleting(null)
+      fetch()
+    } catch (err: any) {
+      toast.error(err.message)
+    }
   }
 
   async function toggleExpand(clientId: string) {
@@ -84,35 +102,39 @@ export default function Clients() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
+    <AppLayout>
+      <div className="mx-auto max-w-4xl px-4 py-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Clients</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
+        <Button onClick={() => setShowForm(true)}>
           + Add Client
-        </button>
+        </Button>
       </div>
 
-      <input
+      <Input
         type="text"
         placeholder="Search clients..."
         value={search}
         onChange={e => setSearch(e.target.value)}
-        className="mt-4 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+        className="mt-4 w-full"
       />
 
       {loading ? (
-        <p className="mt-8 text-center text-gray-500">Loading...</p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <CardSkeleton /><CardSkeleton /><CardSkeleton /><CardSkeleton />
+        </div>
       ) : clients.length === 0 ? (
-        <p className="mt-8 text-center text-gray-500">
-          {search ? 'No clients match your search.' : 'No clients yet. Click + Add Client to get started.'}
-        </p>
+        <div className="mt-8">
+          {search ? (
+            <EmptyState title="No results" description="No clients match your search." />
+          ) : (
+            <EmptyState title="No clients yet" description="Click + Add Client to create your first client." />
+          )}
+        </div>
       ) : (
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {clients.map(c => (
-            <div key={c.id}>
+            <div key={c.id} className="hover:shadow-md transition-shadow">
               <ClientCard
                 client={c}
                 stats={c.stats}
@@ -121,43 +143,49 @@ export default function Clients() {
               />
               <div className="mt-1 flex gap-2">
                 {(c.whatsapp || c.phone) && (
-                  <button
+                  <Button
+                    variant="success"
+                    size="sm"
                     onClick={() => setWhatsappTarget(c)}
-                    className="rounded-lg bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-600"
                   >
                     WhatsApp
-                  </button>
+                  </Button>
                 )}
-                <button
+                <Button
+                  variant="link"
+                  size="sm"
                   onClick={() => toggleExpand(c.id)}
-                  className="text-xs text-blue-600 hover:underline"
                 >
                   {expandedClient === c.id ? 'Hide follow-ups' : 'Show follow-ups'}
-                </button>
+                </Button>
               </div>
               {expandedClient === c.id && (
-                <div className="mt-2 rounded-lg border border-gray-100 bg-gray-50 p-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Follow-up History</h4>
-                  {loadingFu ? (
-                    <p className="text-xs text-gray-400">Loading...</p>
-                  ) : followUps[c.id]?.length === 0 ? (
-                    <p className="text-xs text-gray-400">No follow-ups yet.</p>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {followUps[c.id]?.map(fu => (
-                        <div key={fu.id} className="flex items-center justify-between rounded bg-white px-2.5 py-1.5 text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${statusColors[fu.status]}`}>
-                              {fu.status.replace('_', ' ')}
-                            </span>
-                            <span>Next: {formatDate(fu.next_follow_up_date)}</span>
-                            <span>Last: {formatDate(fu.last_follow_up_date)}</span>
-                          </div>
-                          {fu.notes && <span className="truncate max-w-[120px] text-gray-500 ml-2">{fu.notes}</span>}
+                <div className="mt-2">
+                  <Card>
+                    <CardContent className="p-3">
+                      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Follow-up History</h4>
+                      {loadingFu ? (
+                        <p className="text-xs text-muted-foreground">Loading...</p>
+                      ) : followUps[c.id]?.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">No follow-ups yet.</p>
+                      ) : (
+                        <div className="space-y-1.5">
+                          {followUps[c.id]?.map(fu => (
+                            <div key={fu.id} className="flex items-center justify-between rounded bg-card px-2.5 py-1.5 text-xs">
+                              <div className="flex items-center gap-2">
+                                <Badge variant={statusBadge[fu.status]}>
+                                  {fu.status.replace('_', ' ')}
+                                </Badge>
+                                <span>Next: {formatDate(fu.next_follow_up_date)}</span>
+                                <span>Last: {formatDate(fu.last_follow_up_date)}</span>
+                              </div>
+                              {fu.notes && <span className="truncate max-w-[120px] text-muted-foreground ml-2">{fu.notes}</span>}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
               )}
             </div>
@@ -175,20 +203,20 @@ export default function Clients() {
 
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-bold">Delete Client</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Are you sure you want to delete <strong>{deleting.name}</strong>? This cannot be undone.
-            </p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setDeleting(null)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">
-                Cancel
-              </button>
-              <button onClick={handleDelete} className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700">
-                Delete
-              </button>
-            </div>
-          </div>
+          <Card className="w-full max-w-sm">
+            <CardHeader>
+              <CardTitle>Delete Client</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Are you sure you want to delete <strong>{deleting.name}</strong>? This cannot be undone.
+              </p>
+              <div className="mt-5 flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setDeleting(null)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -200,5 +228,6 @@ export default function Clients() {
         />
       )}
     </div>
+    </AppLayout>
   )
 }

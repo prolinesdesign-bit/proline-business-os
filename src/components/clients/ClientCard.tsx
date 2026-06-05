@@ -1,4 +1,6 @@
 import type { Client, ClientStats } from '../../types'
+import { Button } from '../ui/Button'
+import { Card, CardContent } from '../ui/Card'
 
 interface Props {
   client: Client
@@ -13,7 +15,8 @@ export default function ClientCard({ client, stats, onEdit, onDelete }: Props) {
     : null
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+    <Card>
+      <CardContent className="p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-base font-semibold">{client.name}</h3>
@@ -48,9 +51,10 @@ export default function ClientCard({ client, stats, onEdit, onDelete }: Props) {
       )}
 
       <div className="mt-3 flex gap-2 border-t border-gray-100 pt-3">
-        <button onClick={() => onEdit(client)} className="text-sm text-blue-600 hover:underline">Edit</button>
-        <button onClick={() => onDelete(client)} className="text-sm text-red-600 hover:underline">Delete</button>
+        <Button type="button" variant="link" size="sm" onClick={() => onEdit(client)}>Edit</Button>
+        <Button type="button" variant="link" size="sm" className="text-destructive" onClick={() => onDelete(client)}>Delete</Button>
       </div>
-    </div>
+    </CardContent>
+    </Card>
   )
 }

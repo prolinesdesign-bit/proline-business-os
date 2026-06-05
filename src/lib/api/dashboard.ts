@@ -83,7 +83,7 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   const today = new Date().toISOString().slice(0, 10)
 
-  const [projectsRes, paymentsRes, expensesRes, targetProgress, followUpsRes] = await Promise.all([
+  const [projectsRes, paymentsRes, expensesRes, targetProgress, followUpsRes, siteVisitsRes] = await Promise.all([
     supabase
       .from('projects')
       .select('id, name, status, budget, end_date, client_name'),
@@ -100,17 +100,22 @@ export async function getDashboardData(): Promise<DashboardData> {
       .select('id, client_id, next_follow_up_date, status, notes')
       .neq('status', 'closed')
       .order('next_follow_up_date', { ascending: true }),
+    supabase
+      .from('site_visits')
+      .select('id, visit_date, location, site_status'),
   ])
 
   if (projectsRes.error) throw projectsRes.error
   if (paymentsRes.error) throw paymentsRes.error
   if (expensesRes.error) throw expensesRes.error
   if (followUpsRes.error) throw followUpsRes.error
+  if (siteVisitsRes.error) throw siteVisitsRes.error
 
   const projects = projectsRes.data ?? []
   const payments = paymentsRes.data ?? []
   const expenses = expensesRes.data ?? []
   const followUps = followUpsRes.data ?? []
+  const siteVisits = siteVisitsRes.data ?? []
 
   // KPI calculations
   const totalProjects = projects.length
@@ -181,6 +186,17 @@ export async function getDashboardData(): Promise<DashboardData> {
     return p.status !== 'completed' && p.status !== 'cancelled' && new Date(p.end_date) < now
   })
 
+  // Site visit widgets
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10)
+  const siteVisitsThisMonth = siteVisits.filter(sv => sv.visit_date >= monthStart && sv.visit_date <= monthEnd).length
+
+  const upcomingSiteVisits = [...siteVisits]
+    .filter(sv => sv.visit_date >= today)
+    .sort((a, b) => a.visit_date.localeCompare(b.visit_date))
+    .slice(0, 5)
+    .map(sv => ({ id: sv.id, visit_date: sv.visit_date, location: sv.location, site_status: sv.site_status as DashboardData['upcomingSiteVisits'][0]['site_status'] }))
+
   // Follow-up widgets
   const followUpsDueToday = followUps.filter(f => f.next_follow_up_date === today).length
 
@@ -215,5 +231,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     followUpsDueToday,
     overdueFollowUps,
     upcomingFollowUps,
+    siteVisitsThisMonth,
+    upcomingSiteVisits,
   }
 }

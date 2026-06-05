@@ -30,7 +30,8 @@ src/
 │       ├── targets.ts       — Targets CRUD + monthly progress
 │       ├── tasks.ts          — Tasks CRUD + status update
 │       ├── documents.ts     — Documents upload/download + CRUD
-│       └── followups.ts     — Follow-ups CRUD + WhatsApp URL generation
+│       ├── followups.ts     — Follow-ups CRUD + WhatsApp URL generation
+│       └── analytics.ts     — Business analytics queries
 ├── types/
 │   └── index.ts             — Database model types
 ├── context/AuthContext.tsx   — Auth provider + hooks
@@ -64,6 +65,7 @@ src/
 │   ├── Tasks.tsx              — Tasks list + status dropdown + CRUD
 │   ├── Documents.tsx          — Upload, view, delete documents
 │   ├── FollowUps.tsx           — Follow-ups list + WhatsApp + CRUD
+│   ├── Analytics.tsx            — Business analytics + charts + insights
 │   ├── Payments.tsx          — Payments list + project summaries + CRUD
 │   └── Expenses.tsx          — Expenses list + summary + CRUD
 ├── App.tsx                   — Routes
@@ -119,7 +121,7 @@ for Proline Architects & Builders.
 
 ## Current Phase
 
-Phase 10: Follow-ups
+Phase 11: Analytics
 
 Completed:
 
@@ -139,6 +141,7 @@ Completed:
 * Documents
 * Tasks
 * Follow-ups
+* Analytics
 
 Next:
 

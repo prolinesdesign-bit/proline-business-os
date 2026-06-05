@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import type { Target, TargetFormData } from '../../types'
+import { Button } from '../ui/Button'
+import { Input } from '../ui/Input'
+import { Label } from '../ui/Label'
 
 interface Props {
   target?: Target | null
@@ -55,26 +58,26 @@ export default function TargetForm({ target, onSave, onCancel }: Props) {
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Title</label>
-            <input
+            <Label className="block">Title</Label>
+            <Input
               required
               value={form.title}
               onChange={e => set('title', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Target Amount (₹)</label>
-              <input
+              <Label className="block">Target Amount (₹)</Label>
+              <Input
                 required
                 type="number"
                 min="0"
                 step="0.01"
                 value={form.target_value}
                 onChange={e => set('target_value', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1"
               />
             </div>
             <div />
@@ -82,35 +85,35 @@ export default function TargetForm({ target, onSave, onCancel }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Start Date</label>
-              <input
+              <Label className="block">Start Date</Label>
+              <Input
                 required
                 type="date"
                 value={form.start_date}
                 onChange={e => set('start_date', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">End Date</label>
-              <input
+              <Label className="block">End Date</Label>
+              <Input
                 required
                 type="date"
                 value={form.end_date}
                 onChange={e => set('end_date', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1"
               />
             </div>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Cancel</button>
-          <button type="submit" disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
+          <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button type="submit" disabled={saving}>
             {saving ? 'Saving...' : target ? 'Update' : 'Create'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

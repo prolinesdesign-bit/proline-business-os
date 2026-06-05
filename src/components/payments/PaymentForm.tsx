@@ -1,5 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import type { Payment, PaymentFormData, Project } from '../../types'
+import { Button } from '../ui/Button'
+import { Input } from '../ui/Input'
+import { Textarea } from '../ui/Textarea'
+import { Select } from '../ui/Select'
+import { Label } from '../ui/Label'
 
 interface Props {
   projects: Pick<Project, 'id' | 'name'>[]
@@ -51,68 +56,64 @@ export default function PaymentForm({ projects, payment, onSave, onCancel }: Pro
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Project</label>
-            <select
+            <Label className="block">Project</Label>
+            <Select
               required
               value={form.project_id}
               onChange={e => set('project_id', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             >
               <option value="">Select a project...</option>
               {projects.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Amount (₹)</label>
-            <input
+            <Label className="block">Amount (₹)</Label>
+            <Input
               type="number"
               required
               min="0"
               step="0.01"
               value={form.amount}
               onChange={e => set('amount', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Payment Date</label>
-            <input
+            <Label className="block">Payment Date</Label>
+            <Input
               type="date"
               required
               value={form.payment_date}
               onChange={e => set('payment_date', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Notes</label>
-            <textarea
+            <Label className="block">Notes</Label>
+            <Textarea
               rows={3}
               value={form.description}
               onChange={e => set('description', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
-          >
+          </Button>
+          <Button type="submit" disabled={saving}>
             {saving ? 'Saving...' : payment ? 'Update' : 'Create'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

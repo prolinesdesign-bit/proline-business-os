@@ -1,16 +1,22 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
 import { getFollowUps, createFollowUp, updateFollowUp, deleteFollowUp } from '../lib/api/followups'
 import type { FollowUp, FollowUpFormData, FollowUpWithClient, FollowUpStatus } from '../types'
 import FollowUpForm from '../components/followups/FollowUpForm'
 import WhatsAppModal from '../components/WhatsAppModal'
+import AppLayout from '../components/layout/AppLayout'
+import { Button } from '../components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
+import { Badge } from '../components/ui/Badge'
+import { toast } from 'sonner'
+import { CardSkeleton } from '../components/ui/Skeleton'
+import { EmptyState } from '../components/ui/EmptyState'
 
-const statusColors: Record<FollowUpStatus, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  contacted: 'bg-blue-100 text-blue-800',
-  waiting_client: 'bg-purple-100 text-purple-800',
-  closed: 'bg-green-100 text-green-800',
+const statusBadge: Record<FollowUpStatus, 'warning' | 'default' | 'purple' | 'success'> = {
+  pending: 'warning',
+  contacted: 'default',
+  waiting_client: 'purple',
+  closed: 'success',
 }
 
 const STATUS_FILTERS = [
@@ -27,7 +33,6 @@ function formatDate(d: string | null) {
 }
 
 export default function FollowUps() {
-  const { signOut } = useAuth()
   const [followUps, setFollowUps] = useState<FollowUpWithClient[]>([])
   const [statusFilter, setStatusFilter] = useState('')
   const [loading, setLoading] = useState(true)
@@ -51,21 +56,31 @@ export default function FollowUps() {
   useEffect(() => { fetch() }, [fetch])
 
   async function handleSave(data: FollowUpFormData) {
-    if (editing) {
-      await updateFollowUp(editing.id, data)
-    } else {
-      await createFollowUp(data)
+    try {
+      if (editing) {
+        await updateFollowUp(editing.id, data)
+      } else {
+        await createFollowUp(data)
+      }
+      setShowForm(false)
+      setEditing(null)
+      fetch()
+      toast.success('Follow-up saved')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save follow-up')
     }
-    setShowForm(false)
-    setEditing(null)
-    fetch()
   }
 
   async function handleDelete() {
     if (!deleting) return
-    await deleteFollowUp(deleting.id)
-    setDeleting(null)
-    fetch()
+    try {
+      await deleteFollowUp(deleting.id)
+      setDeleting(null)
+      fetch()
+      toast.success('Follow-up deleted')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete follow-up')
+    }
   }
 
   function openWhatsApp(fu: FollowUpWithClient) {
@@ -73,32 +88,17 @@ export default function FollowUps() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
-        <Link to="/" className="text-xl font-bold">Proline V1</Link>
-        <nav className="flex items-center gap-4">
-          <Link to="/projects" className="text-sm text-blue-600 hover:underline">Projects</Link>
-          <Link to="/clients" className="text-sm text-blue-600 hover:underline">Clients</Link>
-          <Link to="/payments" className="text-sm text-blue-600 hover:underline">Payments</Link>
-          <Link to="/expenses" className="text-sm text-blue-600 hover:underline">Expenses</Link>
-          <Link to="/targets" className="text-sm text-blue-600 hover:underline">Targets</Link>
-          <Link to="/tasks" className="text-sm text-blue-600 hover:underline">Tasks</Link>
-          <Link to="/calendar" className="text-sm text-blue-600 hover:underline">Calendar</Link>
-          <Link to="/documents" className="text-sm text-blue-600 hover:underline">Documents</Link>
-          <button onClick={signOut} className="rounded-lg border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50">Logout</button>
-        </nav>
-      </div>
-
+    <AppLayout>
       <div className="mx-auto max-w-5xl px-4 py-6">
         <div className="flex items-center justify-between gap-4 mb-6">
           <h1 className="text-2xl font-bold">Follow-ups</h1>
-          <button onClick={() => setShowForm(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          <Button onClick={() => setShowForm(true)}>
             + New Follow-up
-          </button>
+          </Button>
         </div>
 
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-gray-600">Filter:</span>
+          <span className="text-sm font-medium text-muted-foreground">Filter:</span>
           {STATUS_FILTERS.map(sf => (
             <button
               key={sf.value}
@@ -115,41 +115,40 @@ export default function FollowUps() {
         </div>
 
         {loading ? (
-          <p className="text-center text-gray-500 py-12">Loading...</p>
+          <div className="space-y-4"><CardSkeleton /><CardSkeleton /><CardSkeleton /></div>
         ) : followUps.length === 0 ? (
-          <p className="text-center text-gray-500 py-12">No follow-ups found.</p>
+          <EmptyState title="No follow-ups yet" description="Follow-ups help you stay on top of client communications." />
         ) : (
           <div className="space-y-3">
             {followUps.map(fu => (
-              <div key={fu.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <Link to={`/clients`} className="font-semibold text-blue-600 hover:underline">{fu.client_name}</Link>
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[fu.status]}`}>
-                        {fu.status.replace('_', ' ')}
-                      </span>
+              <Card key={fu.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Link to={`/clients`} className="font-semibold text-primary hover:underline">{fu.client_name}</Link>
+                        <Badge variant={statusBadge[fu.status]}>
+                          {fu.status.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                        <span>Next: {formatDate(fu.next_follow_up_date)}</span>
+                        <span>Last: {formatDate(fu.last_follow_up_date)}</span>
+                      </div>
+                      {fu.notes && <p className="mt-1 text-sm text-muted-foreground">{fu.notes}</p>}
                     </div>
-                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
-                      <span>Next: {formatDate(fu.next_follow_up_date)}</span>
-                      <span>Last: {formatDate(fu.last_follow_up_date)}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {fu.client_whatsapp && (
+                        <Button variant="success" size="sm" onClick={() => openWhatsApp(fu)}>
+                          WhatsApp
+                        </Button>
+                      )}
+                      <Button variant="link" size="sm" onClick={() => { setEditing(fu); setShowForm(true) }}>Edit</Button>
+                      <Button variant="link" size="sm" className="text-destructive" onClick={() => setDeleting(fu)}>Delete</Button>
                     </div>
-                    {fu.notes && <p className="mt-1 text-sm text-gray-600">{fu.notes}</p>}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {fu.client_whatsapp && (
-                      <button
-                        onClick={() => openWhatsApp(fu)}
-                        className="rounded-lg bg-green-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-600"
-                      >
-                        WhatsApp
-                      </button>
-                    )}
-                    <button onClick={() => { setEditing(fu); setShowForm(true) }} className="text-sm text-blue-600 hover:underline">Edit</button>
-                    <button onClick={() => setDeleting(fu)} className="text-sm text-red-600 hover:underline">Delete</button>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
@@ -165,16 +164,20 @@ export default function FollowUps() {
 
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-bold">Delete Follow-up</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Delete follow-up for <strong>{deleting.client_name}</strong>? This cannot be undone.
-            </p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setDeleting(null)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Cancel</button>
-              <button onClick={handleDelete} className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700">Delete</button>
-            </div>
-          </div>
+          <Card className="w-full max-w-sm">
+            <CardHeader>
+              <CardTitle>Delete Follow-up</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Delete follow-up for <strong>{deleting.client_name}</strong>? This cannot be undone.
+              </p>
+              <div className="mt-5 flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setDeleting(null)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -185,6 +188,6 @@ export default function FollowUps() {
           onClose={() => setWhatsappTarget(null)}
         />
       )}
-    </div>
+    </AppLayout>
   )
 }

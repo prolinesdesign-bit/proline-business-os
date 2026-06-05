@@ -3,6 +3,13 @@ import type { Payment, PaymentFormData, ProjectPaymentSummary, Project } from '.
 import { getPayments, getProjectSummaries, createPayment, updatePayment, deletePayment } from '../lib/api/payments'
 import { getProjects } from '../lib/api/projects'
 import PaymentForm from '../components/payments/PaymentForm'
+import AppLayout from '../components/layout/AppLayout'
+import { Button } from '../components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table'
+import { toast } from 'sonner'
+import { TableSkeleton } from '../components/ui/Skeleton'
+import { EmptyState } from '../components/ui/EmptyState'
 
 export default function Payments() {
   const [payments, setPayments] = useState<Payment[]>([])
@@ -34,35 +41,43 @@ export default function Payments() {
   useEffect(() => { fetch() }, [fetch])
 
   async function handleSave(data: PaymentFormData) {
-    if (editing) {
-      await updatePayment(editing.id, data)
-    } else {
-      await createPayment(data)
+    try {
+      if (editing) {
+        await updatePayment(editing.id, data)
+      } else {
+        await createPayment(data)
+      }
+      toast.success('Payment saved')
+      setShowForm(false)
+      setEditing(null)
+      fetch()
+    } catch (err: any) {
+      toast.error(err.message)
     }
-    setShowForm(false)
-    setEditing(null)
-    fetch()
   }
 
   async function handleDelete() {
     if (!deleting) return
-    await deletePayment(deleting.id)
-    setDeleting(null)
-    fetch()
+    try {
+      await deletePayment(deleting.id)
+      toast.success('Payment deleted')
+      setDeleting(null)
+      fetch()
+    } catch (err: any) {
+      toast.error(err.message)
+    }
   }
 
   const totalOutstanding = summaries.reduce((sum, s) => sum + s.balance_due, 0)
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <AppLayout>
+      <div className="mx-auto max-w-5xl px-4 py-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Payments</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
+        <Button onClick={() => setShowForm(true)}>
           + Add Payment
-        </button>
+        </Button>
       </div>
 
       {/* Project payment summary cards */}
@@ -71,29 +86,31 @@ export default function Payments() {
           <h2 className="mb-3 text-lg font-semibold">Project Payment Summary</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {summaries.map(s => (
-              <div key={s.project_id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <h3 className="truncate text-sm font-semibold text-gray-700">{s.project_name}</h3>
-                <div className="mt-2 space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Project Value</span>
-                    <span className="font-medium">₹{s.project_value.toLocaleString()}</span>
+              <Card key={s.project_id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <h3 className="truncate text-sm font-semibold text-foreground">{s.project_name}</h3>
+                  <div className="mt-2 space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Project Value</span>
+                      <span className="font-medium">₹{s.project_value.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Total Paid</span>
+                      <span className="font-medium text-green-600">₹{s.total_paid.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between border-t pt-1">
+                      <span className="text-muted-foreground">Balance Due</span>
+                      <span className={`font-semibold ${s.balance_due > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                        ₹{s.balance_due.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Total Paid</span>
-                    <span className="font-medium text-green-600">₹{s.total_paid.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between border-t border-gray-100 pt-1">
-                    <span className="text-gray-500">Balance Due</span>
-                    <span className={`font-semibold ${s.balance_due > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      ₹{s.balance_due.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-          <div className="mt-3 text-right text-sm text-gray-500">
-            Total Outstanding: <span className="font-semibold text-red-600">₹{totalOutstanding.toLocaleString()}</span>
+          <div className="mt-3 text-right text-sm text-muted-foreground">
+            Total Outstanding: <span className="font-semibold text-destructive">₹{totalOutstanding.toLocaleString()}</span>
           </div>
         </div>
       )}
@@ -103,41 +120,68 @@ export default function Payments() {
         <h2 className="mb-3 text-lg font-semibold">All Payments</h2>
 
         {loading ? (
-          <p className="text-center text-gray-500">Loading...</p>
+          <TableSkeleton />
         ) : payments.length === 0 ? (
-          <p className="text-center text-gray-500">No payments yet. Click + Add Payment to record one.</p>
+          <EmptyState title="No payments yet" description="Click + Add Payment to record one." />
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-200">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-gray-600">Date</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Project</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Amount</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Notes</th>
-                  <th className="px-4 py-3 font-medium text-gray-600" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Project</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Notes</TableHead>
+                  <TableHead />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {payments.map(p => {
                   const project = projects.find(pr => pr.id === p.project_id)
                   return (
-                    <tr key={p.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 whitespace-nowrap">{p.payment_date}</td>
-                      <td className="px-4 py-3 whitespace-nowrap">{project?.name ?? '—'}</td>
-                      <td className="px-4 py-3 whitespace-nowrap font-medium">₹{Number(p.amount).toLocaleString()}</td>
-                      <td className="px-4 py-3 max-w-[200px] truncate text-gray-500">{p.description ?? '—'}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-right">
-                        <button onClick={() => { setEditing(p); setShowForm(true) }} className="text-blue-600 hover:underline">Edit</button>
-                        <button onClick={() => setDeleting(p)} className="ml-3 text-red-600 hover:underline">Delete</button>
-                      </td>
-                    </tr>
+                    <TableRow key={p.id}>
+                      <TableCell className="whitespace-nowrap">{p.payment_date}</TableCell>
+                      <TableCell className="whitespace-nowrap">{project?.name ?? '—'}</TableCell>
+                      <TableCell className="whitespace-nowrap font-medium">₹{Number(p.amount).toLocaleString()}</TableCell>
+                      <TableCell className="max-w-[200px] truncate text-muted-foreground">{p.description ?? '—'}</TableCell>
+                      <TableCell className="whitespace-nowrap text-right">
+                        <Button variant="link" size="sm" onClick={() => { setEditing(p); setShowForm(true) }}>Edit</Button>
+                        <Button variant="link" size="sm" className="ml-3 text-destructive" onClick={() => setDeleting(p)}>Delete</Button>
+                      </TableCell>
+                    </TableRow>
                   )
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
+      </div>
+
+      {/* Mobile card view */}
+      <div className="space-y-3 md:hidden">
+        {payments.map((payment) => {
+          const project = projects.find(pr => pr.id === payment.project_id)
+          return (
+            <Card key={payment.id}>
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground">{project?.name ?? 'Unknown Project'}</p>
+                    <p className="text-xs text-muted-foreground">{payment.payment_date}</p>
+                    {payment.description && <p className="mt-1 text-xs text-muted-foreground truncate">{payment.description}</p>}
+                  </div>
+                  <div className="flex flex-col items-end gap-1 ml-3">
+                    <span className="font-semibold text-foreground">₹{Number(payment.amount).toLocaleString()}</span>
+                    <div className="flex gap-1">
+                      <button onClick={() => { setEditing(payment); setShowForm(true) }} className="text-xs text-blue-600 hover:underline">Edit</button>
+                      <button onClick={() => setDeleting(payment)} className="text-xs text-red-600 hover:underline">Del</button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       {showForm && (
@@ -151,22 +195,23 @@ export default function Payments() {
 
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-bold">Delete Payment</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Delete ₹{Number(deleting.amount).toLocaleString()} payment? This cannot be undone.
-            </p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setDeleting(null)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">
-                Cancel
-              </button>
-              <button onClick={handleDelete} className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700">
-                Delete
-              </button>
-            </div>
-          </div>
+          <Card className="w-full max-w-sm">
+            <CardHeader>
+              <CardTitle>Delete Payment</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Delete ₹{Number(deleting.amount).toLocaleString()} payment? This cannot be undone.
+              </p>
+              <div className="mt-5 flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setDeleting(null)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleDelete}>Delete</Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
+    </AppLayout>
   )
 }

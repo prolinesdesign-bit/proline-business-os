@@ -187,7 +187,7 @@ export interface CalendarEvent {
   name: string
   client_name: string | null
   status: string
-  type: 'start' | 'due'
+  type: 'start' | 'due' | 'site_visit'
   date: string
 }
 
@@ -261,6 +261,88 @@ export interface FollowUpWithClient extends FollowUp {
   client_whatsapp: string | null
 }
 
+export type SiteVisitStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled'
+
+export interface SiteVisit {
+  id: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  project_id: string | null
+  client_id: string | null
+  visit_date: string
+  location: string | null
+  notes: string | null
+  travel_cost: number
+  site_status: SiteVisitStatus
+  next_action: string | null
+  photo_urls: string[]
+  latitude: number | null
+  longitude: number | null
+}
+
+export type SiteVisitFormData = {
+  project_id: string
+  client_id: string
+  visit_date: string
+  location: string
+  notes: string
+  travel_cost: string
+  site_status: SiteVisitStatus
+  next_action: string
+  latitude: string
+  longitude: string
+}
+
+export interface SiteVisitWithRelations extends SiteVisit {
+  project_name: string | null
+  client_name: string | null
+}
+
+export type ProposalTemplate = 'architecture' | '3d_elevation' | 'interior' | 'consultation'
+
+export type ProposalStatus = 'draft' | 'sent' | 'accepted' | 'rejected'
+
+export interface Proposal {
+  id: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  client_id: string
+  project_id: string | null
+  template: ProposalTemplate
+  proposal_number: string
+  fee_amount: number
+  scope_of_work: string
+  deliverables: string
+  timeline: string
+  terms_conditions: string
+  status: ProposalStatus
+}
+
+export type ProposalFormData = {
+  client_id: string
+  project_id: string
+  template: ProposalTemplate
+  fee_amount: string
+  scope_of_work: string
+  deliverables: string
+  timeline: string
+  terms_conditions: string
+}
+
+export interface ProposalWithRelations extends Proposal {
+  client_name: string
+  project_name: string | null
+}
+
+export const TEMPLATE_LABELS: Record<ProposalTemplate, string> = {
+  architecture: 'Architecture Design Proposal',
+  '3d_elevation': '3D Elevation Proposal',
+  interior: 'Interior Design Proposal',
+  consultation: 'Consultation Proposal',
+}
+
 export type WhatsAppTemplate = 'payment_reminder' | 'project_update' | 'meeting_reminder' | 'custom'
 
 export const WHATSAPP_TEMPLATES: Record<WhatsAppTemplate, (clientName: string) => string> = {
@@ -271,6 +353,28 @@ export const WHATSAPP_TEMPLATES: Record<WhatsAppTemplate, (clientName: string) =
   meeting_reminder: (name) =>
     `Dear ${name}, this is a reminder about our scheduled meeting. Please confirm your availability. Thank you, Proline Architects & Builders.`,
   custom: () => '',
+}
+
+export interface AnalyticsData {
+  totalRevenue: number
+  totalExpenses: number
+  netProfit: number
+  outstandingBalance: number
+  averageProjectValue: number
+  collectionRate: number
+
+  monthlyRevenue: { month: string; revenue: number }[]
+  monthlyExpenses: { month: string; expenses: number }[]
+  monthlyProfit: { month: string; profit: number }[]
+
+  projectStatusDistribution: { name: string; value: number }[]
+  revenueByClient: { client: string; revenue: number }[]
+  revenueByProjectStatus: { status: string; revenue: number }[]
+
+  topClient: { name: string; revenue: number } | null
+  topProjectStatus: { status: string; revenue: number } | null
+  overdueProjectsCount: number
+  pendingCollectionAmount: number
 }
 
 export interface DashboardData {
@@ -294,4 +398,6 @@ export interface DashboardData {
   followUpsDueToday: number
   overdueFollowUps: Pick<FollowUp, 'id' | 'client_id' | 'next_follow_up_date' | 'status' | 'notes'>[]
   upcomingFollowUps: Pick<FollowUp, 'id' | 'client_id' | 'next_follow_up_date' | 'status' | 'notes'>[]
+  siteVisitsThisMonth: number
+  upcomingSiteVisits: Pick<SiteVisit, 'id' | 'visit_date' | 'location' | 'site_status'>[]
 }

@@ -1,6 +1,11 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import type { FollowUp, FollowUpFormData, FollowUpStatus, Client } from '../../types'
 import { getClients } from '../../lib/api/clients'
+import { Button } from '../ui/Button'
+import { Input } from '../ui/Input'
+import { Textarea } from '../ui/Textarea'
+import { Select } from '../ui/Select'
+import { Label } from '../ui/Label'
 
 interface Props {
   followUp?: FollowUp | null
@@ -72,72 +77,72 @@ export default function FollowUpForm({ followUp, onSave, onCancel }: Props) {
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Client</label>
-            <select
+            <Label className="block">Client</Label>
+            <Select
               required
               value={form.client_id}
               onChange={e => set('client_id', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             >
               <option value="">Select a client</option>
               {clients.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Next Follow-up</label>
-              <input
+              <Label className="block">Next Follow-up</Label>
+              <Input
                 type="date"
                 value={form.next_follow_up_date}
                 onChange={e => set('next_follow_up_date', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Last Follow-up</label>
-              <input
+              <Label className="block">Last Follow-up</Label>
+              <Input
                 type="date"
                 value={form.last_follow_up_date}
                 onChange={e => set('last_follow_up_date', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Status</label>
-            <select
+            <Label className="block">Status</Label>
+            <Select
               value={form.status}
               onChange={e => set('status', e.target.value as FollowUpStatus)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             >
               {STATUSES.map(s => (
                 <option key={s.value} value={s.value}>{s.label}</option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Notes</label>
-            <textarea
+            <Label className="block">Notes</Label>
+            <Textarea
               rows={3}
               value={form.notes}
               onChange={e => set('notes', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Cancel</button>
-          <button type="submit" disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
+          <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button type="submit" disabled={saving}>
             {saving ? 'Saving...' : followUp ? 'Update' : 'Create'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

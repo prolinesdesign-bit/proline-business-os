@@ -1,16 +1,20 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
 import { getTargetProgress, getTargets, createTarget, updateTarget, deleteTarget } from '../lib/api/targets'
 import type { Target, TargetFormData, TargetProgress } from '../types'
 import TargetForm from '../components/targets/TargetForm'
+import AppLayout from '../components/layout/AppLayout'
+import { Button } from '../components/ui/Button'
+import { Card, CardContent } from '../components/ui/Card'
+import { Badge } from '../components/ui/Badge'
+import { toast } from 'sonner'
+import { CardSkeleton } from '../components/ui/Skeleton'
+import { EmptyState } from '../components/ui/EmptyState'
 
 function formatCurrency(n: number) {
   return `₹${Math.round(n).toLocaleString()}`
 }
 
 export default function Targets() {
-  const { signOut } = useAuth()
   const [targets, setTargets] = useState<Target[]>([])
   const [progress, setProgress] = useState<TargetProgress | null>(null)
   const [loading, setLoading] = useState(true)
@@ -34,75 +38,70 @@ export default function Targets() {
   useEffect(() => { fetch() }, [fetch])
 
   async function handleSave(data: TargetFormData) {
-    if (editing) {
-      await updateTarget(editing.id, data)
-    } else {
-      await createTarget(data)
+    try {
+      if (editing) {
+        await updateTarget(editing.id, data)
+      } else {
+        await createTarget(data)
+      }
+      toast.success('Target saved')
+      setShowForm(false)
+      setEditing(null)
+      fetch()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save target')
     }
-    setShowForm(false)
-    setEditing(null)
-    fetch()
   }
 
   async function handleDelete() {
     if (!deleting) return
-    await deleteTarget(deleting.id)
-    setDeleting(null)
-    fetch()
+    try {
+      await deleteTarget(deleting.id)
+      toast.success('Target deleted')
+      setDeleting(null)
+      fetch()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete target')
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
-        <Link to="/" className="text-xl font-bold">Proline V1</Link>
-        <nav className="flex items-center gap-4">
-          <Link to="/projects" className="text-sm text-blue-600 hover:underline">Projects</Link>
-          <Link to="/clients" className="text-sm text-blue-600 hover:underline">Clients</Link>
-          <Link to="/payments" className="text-sm text-blue-600 hover:underline">Payments</Link>
-          <Link to="/expenses" className="text-sm text-blue-600 hover:underline">Expenses</Link>
-          <Link to="/targets" className="text-sm text-blue-600 hover:underline">Targets</Link>
-          <Link to="/tasks" className="text-sm text-blue-600 hover:underline">Tasks</Link>
-          <Link to="/calendar" className="text-sm text-blue-600 hover:underline">Calendar</Link>
-          <Link to="/documents" className="text-sm text-blue-600 hover:underline">Documents</Link>
-          <Link to="/followups" className="text-sm text-blue-600 hover:underline">Follow-ups</Link>
-          <button onClick={signOut} className="rounded-lg border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50">Logout</button>
-        </nav>
-      </div>
-
+    <AppLayout>
       <div className="mx-auto max-w-5xl px-4 py-6">
         <div className="flex items-center justify-between gap-4 mb-6">
           <h1 className="text-2xl font-bold">Targets</h1>
-          <button onClick={() => setShowForm(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+          <Button onClick={() => setShowForm(true)}>
             + New Target
-          </button>
+          </Button>
         </div>
 
         {loading ? (
-          <p className="text-center text-gray-500 py-12">Loading...</p>
+          <div className="space-y-4"><CardSkeleton /><CardSkeleton /></div>
         ) : (
           <>
             {/* Current month target progress */}
-            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8">
+            <Card className="mb-8">
+              <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">This Month's Target</h2>
               {progress && progress.target ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Target</p>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Target</p>
                       <p className="mt-1 text-2xl font-bold">{formatCurrency(progress.target.target_value)}</p>
                     </div>
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Current Revenue</p>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Current Revenue</p>
                       <p className="mt-1 text-2xl font-bold text-green-600">{formatCurrency(progress.currentRevenue)}</p>
                     </div>
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Remaining</p>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Remaining</p>
                       <p className={`mt-1 text-2xl font-bold ${progress.remaining > 0 ? 'text-amber-600' : 'text-green-600'}`}>
                         {formatCurrency(progress.remaining)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Daily Needed</p>
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Daily Needed</p>
                       <p className="mt-1 text-2xl font-bold text-orange-600">{formatCurrency(progress.dailyNeeded)}</p>
                     </div>
                   </div>
@@ -125,43 +124,45 @@ export default function Targets() {
                     </div>
                   </div>
 
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-muted-foreground">
                     Target: {progress.target.title} &middot; {new Date(progress.target.start_date).toLocaleDateString()} — {new Date(progress.target.end_date).toLocaleDateString()}
                   </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 mb-3">No target set for this month.</p>
-                  <button onClick={() => setShowForm(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                  <p className="text-muted-foreground mb-3">No target set for this month.</p>
+                  <Button onClick={() => setShowForm(true)}>
                     Set Monthly Target
-                  </button>
+                  </Button>
                 </div>
               )}
-            </div>
+              </CardContent>
+            </Card>
 
             {/* All targets list */}
             <h2 className="text-lg font-semibold mb-4">All Targets</h2>
             {targets.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">No targets created yet.</p>
+              <EmptyState title="No targets yet" description="Create your first target to start tracking progress." />
             ) : (
               <div className="space-y-3">
                 {targets.map(t => {
                   const pct = t.target_value > 0 ? Math.min(100, Math.round((t.current_value / t.target_value) * 100)) : 0
                   return (
-                    <div key={t.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <Card key={t.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <h3 className="font-semibold">{t.title}</h3>
-                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                              t.status === 'active' ? 'bg-green-100 text-green-700' :
-                              t.status === 'achieved' ? 'bg-blue-100 text-blue-700' :
-                              'bg-red-100 text-red-700'
-                            }`}>
+                            <Badge variant={
+                              t.status === 'active' ? 'success' :
+                              t.status === 'achieved' ? 'default' :
+                              'destructive'
+                            }>
                               {t.status}
-                            </span>
+                            </Badge>
                           </div>
-                          <p className="text-xs text-gray-500 mt-0.5">
+                          <p className="text-xs text-muted-foreground mt-0.5">
                             {t.target_type} &middot; {new Date(t.start_date).toLocaleDateString()} — {new Date(t.end_date).toLocaleDateString()}
                           </p>
                         </div>
@@ -176,11 +177,12 @@ export default function Targets() {
                           </div>
                         </div>
                         <div className="flex gap-2 shrink-0">
-                          <button onClick={() => { setEditing(t); setShowForm(true) }} className="text-sm text-blue-600 hover:underline">Edit</button>
-                          <button onClick={() => setDeleting(t)} className="text-sm text-red-600 hover:underline">Delete</button>
+                          <Button variant="link" size="sm" onClick={() => { setEditing(t); setShowForm(true) }}>Edit</Button>
+                          <Button variant="link" size="sm" className="text-destructive" onClick={() => setDeleting(t)}>Delete</Button>
                         </div>
                       </div>
-                    </div>
+                      </CardContent>
+                    </Card>
                   )
                 })}
               </div>
@@ -205,12 +207,12 @@ export default function Targets() {
               Delete <strong>{deleting.title}</strong>? This cannot be undone.
             </p>
             <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setDeleting(null)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Cancel</button>
-              <button onClick={handleDelete} className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700">Delete</button>
+              <Button variant="outline" onClick={() => setDeleting(null)}>Cancel</Button>
+              <Button variant="destructive" onClick={handleDelete}>Delete</Button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </AppLayout>
   )
 }

@@ -21,6 +21,10 @@
 - **Documents module** — Upload (PDF/JPG/PNG/DOCX, 10MB limit), preview modal (PDF via iframe, images inline, DOCX shows download prompt), download button via signed URL, delete, link to project, filter by project, Supabase Storage with RLS, document metadata table with migration SQL
 - **Follow-ups module** — CRUD, client-linked, next/last follow-up dates, notes, status (Pending/Contacted/Waiting Client/Closed), filter by status, expandable follow-up history on client cards, WhatsApp integration with 4 message templates (Payment Reminder/Project Update/Meeting Reminder/Custom), auto-generates `wa.me` links
 - **Dashboard follow-up widgets** — Follow-ups Due Today (count), Overdue Follow-ups list, Upcoming Follow-ups list
+- **Business Analytics module** — 6 metric cards (Total Revenue, Total Expenses, Net Profit, Outstanding Balance, Avg Project Value, Collection Rate), 6 charts (monthly Revenue/Expenses/Profit bar charts, Project Status Distribution pie chart, Revenue by Client horizontal bar chart, Revenue by Project Status bar chart), 4 insight cards (Top Client, Top Project Status, Overdue Projects Count, Pending Collection Amount)
+- **Site Visit Tracker module** — Migration `003_site_visits.sql`. CRUD, linked to project/client, visit date, location, lat/lng coordinates, notes, travel cost, status, next action, photo upload to Supabase Storage, photo gallery with preview lightbox, Google Maps navigation button, calendar integration (purple V chips), dashboard widgets (count + upcoming list), project card photo count
+- **Proposals module** — Migration `006_proposals.sql`. 4 templates (Architecture Design, 3D Elevation, Interior Design, Consultation). CRUD, client/project select, fee, scope, deliverables, timeline, terms. Status workflow (draft → sent → accepted/rejected). Professional PDF preview with html2canvas + jsPDF download. Nav link and route.
+- **Navigation redesign** — Shared `AppLayout` wrapper (`src/components/layout/`) with collapsible sidebar, mobile slide-out drawer, SVG icons for all nav items, active page highlighting (blue-50 bg), breadcrumb trail, floating quick action FAB (New Project/Client/Payment/Expense). Nav bar extracted from 14 pages into a single `NavBar` component. Logout moved to sidebar footer. 
 
 ## Not Started
 
@@ -31,3 +35,8 @@
 - `whatsapp` column does not exist in live Supabase `clients` table — needs `ALTER TABLE clients ADD COLUMN IF NOT EXISTS whatsapp text;` run in Supabase SQL Editor
 - Supabase Auth email confirmation is ON — turn off in Dashboard for dev, or configure SMTP
 - `documents` table and `documents` storage bucket need to be created by running `supabase/migrations/001_documents.sql`
+- `follow_ups` table needs `supabase/migrations/002_follow_ups.sql`
+- `site_visits` table needs `supabase/migrations/003_site_visits.sql`
+- `site_photos` storage bucket needs `supabase/migrations/004_site_visit_photos.sql`
+- `site_visits` coordinates columns need `supabase/migrations/005_site_visit_coordinates.sql`
+- `proposals` table needs `supabase/migrations/006_proposals.sql`

@@ -1,5 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import type { Client, ClientFormData } from '../../types'
+import { Button } from '../ui/Button'
+import { Input } from '../ui/Input'
+import { Textarea } from '../ui/Textarea'
+import { Label } from '../ui/Label'
 
 const emptyForm: ClientFormData = {
   name: '',
@@ -56,80 +60,76 @@ export default function ClientForm({ client, onSave, onCancel }: Props) {
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
-            <input
+            <Label className="block">Name</Label>
+            <Input
               required
               value={form.name}
               onChange={e => set('name', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Phone</label>
-              <input
+              <Label className="block">Phone</Label>
+              <Input
                 type="tel"
                 value={form.phone}
                 onChange={e => set('phone', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
-              <input
+              <Label className="block">WhatsApp</Label>
+              <Input
                 type="tel"
                 value={form.whatsapp}
                 onChange={e => set('whatsapp', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
-              <input
+              <Label className="block">Email</Label>
+              <Input
                 type="email"
                 value={form.email}
                 onChange={e => set('email', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Location</label>
-              <input
+              <Label className="block">Location</Label>
+              <Input
                 value={form.location}
                 onChange={e => set('location', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Notes</label>
-            <textarea
+            <Label className="block">Notes</Label>
+            <Textarea
               rows={3}
               value={form.notes}
               onChange={e => set('notes', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
-          >
+          </Button>
+          <Button type="submit" disabled={saving}>
             {saving ? 'Saving...' : client ? 'Update' : 'Create'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

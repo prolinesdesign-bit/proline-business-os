@@ -13,6 +13,10 @@ import Targets from './pages/Targets'
 import Tasks from './pages/Tasks'
 import Documents from './pages/Documents'
 import FollowUps from './pages/FollowUps'
+import Analytics from './pages/Analytics'
+import SiteVisits from './pages/SiteVisits'
+import Proposals from './pages/Proposals'
+import BackupRestore from './pages/BackupRestore'
 
 export default function App() {
   return (
@@ -105,6 +109,38 @@ export default function App() {
         element={
           <ProtectedRoute>
             <FollowUps />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <Analytics />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sitevisits"
+        element={
+          <ProtectedRoute>
+            <SiteVisits />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/proposals"
+        element={
+          <ProtectedRoute>
+            <Proposals />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/backup"
+        element={
+          <ProtectedRoute>
+            <BackupRestore />
           </ProtectedRoute>
         }
       />

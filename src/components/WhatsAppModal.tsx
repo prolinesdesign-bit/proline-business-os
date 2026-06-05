@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { WhatsAppTemplate } from '../types'
 import { WHATSAPP_TEMPLATES } from '../types'
 import { generateWhatsAppUrl } from '../lib/api/followups'
+import { Button } from './ui/Button'
+import { Textarea } from './ui/Textarea'
 
 interface Props {
   phone: string
@@ -32,32 +34,29 @@ export default function WhatsAppModal({ phone, clientName, onClose }: Props) {
 
         <div className="flex gap-2 mb-3 flex-wrap">
           {(Object.keys(WHATSAPP_TEMPLATES) as WhatsAppTemplate[]).map(t => (
-            <button
+            <Button
               key={t}
+              type="button"
+              size="sm"
+              variant={template === t ? 'success' : 'secondary'}
               onClick={() => selectTemplate(t)}
-              className={`rounded-full px-3 py-1 text-xs font-medium ${
-                template === t
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
             >
               {t.replace(/_/g, ' ')}
-            </button>
+            </Button>
           ))}
         </div>
 
-        <textarea
+        <Textarea
           rows={4}
           value={message}
           onChange={e => { setMessage(e.target.value); setTemplate('custom') }}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
         />
 
         <div className="mt-4 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Cancel</button>
-          <button onClick={send} className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
+          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+          <Button type="button" variant="success" onClick={send}>
             Send via WhatsApp
-          </button>
+          </Button>
         </div>
       </div>
     </div>

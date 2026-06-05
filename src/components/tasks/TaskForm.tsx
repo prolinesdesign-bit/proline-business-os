@@ -1,6 +1,11 @@
 import { useState, useEffect, type FormEvent } from 'react'
 import type { Task, TaskFormData, Project } from '../../types'
 import { getProjects } from '../../lib/api/projects'
+import { Button } from '../ui/Button'
+import { Input } from '../ui/Input'
+import { Textarea } from '../ui/Textarea'
+import { Select } from '../ui/Select'
+import { Label } from '../ui/Label'
 
 interface Props {
   task?: Task | null
@@ -59,72 +64,72 @@ export default function TaskForm({ task, onSave, onCancel }: Props) {
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Title</label>
-            <input
+            <Label className="block">Title</Label>
+            <Input
               required
               value={form.title}
               onChange={e => set('title', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
-            <textarea
+            <Label className="block">Description</Label>
+            <Textarea
               rows={3}
               value={form.description}
               onChange={e => set('description', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Priority</label>
-              <select
+              <Label className="block">Priority</Label>
+              <Select
                 value={form.priority}
                 onChange={e => set('priority', e.target.value as Task['priority'])}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
                 <option value="urgent">Urgent</option>
-              </select>
+              </Select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Due Date</label>
-              <input
+              <Label className="block">Due Date</Label>
+              <Input
                 type="date"
                 value={form.due_date}
                 onChange={e => set('due_date', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                className="mt-1"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Project</label>
-            <select
+            <Label className="block">Project</Label>
+            <Select
               value={form.project_id}
               onChange={e => set('project_id', e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1"
             >
               <option value="">No project</option>
               {projects.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
-            </select>
+            </Select>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Cancel</button>
-          <button type="submit" disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50">
+          <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button type="submit" disabled={saving}>
             {saving ? 'Saving...' : task ? 'Update' : 'Create'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>
