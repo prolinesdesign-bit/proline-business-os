@@ -26,10 +26,17 @@ create table if not exists clients (
   email       text,
   phone       text,
   company     text,
+  whatsapp    text,
   notes       text
 );
 
 create index if not exists idx_clients_user_id on clients(user_id);
+
+do $$ begin
+  if not exists (select 1 from information_schema.columns where table_name = 'clients' and column_name = 'whatsapp') then
+    alter table clients add column whatsapp text;
+  end if;
+end $$;
 
 alter table clients enable row level security;
 

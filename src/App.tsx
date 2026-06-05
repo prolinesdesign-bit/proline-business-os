@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import AuthCallback from './pages/AuthCallback'
 import Projects from './pages/Projects'
+import Clients from './pages/Clients'
 import { useAuth } from './context/AuthContext'
 
 function Dashboard() {
@@ -14,6 +15,7 @@ function Dashboard() {
         <h1 className="text-xl font-bold">Proline V1</h1>
         <nav className="flex items-center gap-4">
           <Link to="/projects" className="text-sm text-blue-600 hover:underline">Projects</Link>
+          <Link to="/clients" className="text-sm text-blue-600 hover:underline">Clients</Link>
           <button onClick={signOut} className="rounded-lg border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50">
             Logout
           </button>
@@ -45,6 +47,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Projects />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/clients"
+        element={
+          <ProtectedRoute>
+            <Clients />
           </ProtectedRoute>
         }
       />
