@@ -81,7 +81,9 @@ export async function getDashboardData(): Promise<DashboardData> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
-  const [projectsRes, paymentsRes, expensesRes, targetProgress] = await Promise.all([
+  const today = new Date().toISOString().slice(0, 10)
+
+  const [projectsRes, paymentsRes, expensesRes, targetProgress, followUpsRes] = await Promise.all([
     supabase
       .from('projects')
       .select('id, name, status, budget, end_date, client_name'),
@@ -93,15 +95,22 @@ export async function getDashboardData(): Promise<DashboardData> {
       .from('expenses')
       .select('id, amount, expense_date, category, description, project_id'),
     getTargetProgress(),
+    supabase
+      .from('follow_ups')
+      .select('id, client_id, next_follow_up_date, status, notes')
+      .neq('status', 'closed')
+      .order('next_follow_up_date', { ascending: true }),
   ])
 
   if (projectsRes.error) throw projectsRes.error
   if (paymentsRes.error) throw paymentsRes.error
   if (expensesRes.error) throw expensesRes.error
+  if (followUpsRes.error) throw followUpsRes.error
 
   const projects = projectsRes.data ?? []
   const payments = paymentsRes.data ?? []
   const expenses = expensesRes.data ?? []
+  const followUps = followUpsRes.data ?? []
 
   // KPI calculations
   const totalProjects = projects.length
@@ -172,6 +181,19 @@ export async function getDashboardData(): Promise<DashboardData> {
     return p.status !== 'completed' && p.status !== 'cancelled' && new Date(p.end_date) < now
   })
 
+  // Follow-up widgets
+  const followUpsDueToday = followUps.filter(f => f.next_follow_up_date === today).length
+
+  const overdueFollowUps = followUps
+    .filter(f => f.next_follow_up_date && f.next_follow_up_date < today)
+    .slice(0, 5)
+    .map(f => ({ id: f.id, client_id: f.client_id, next_follow_up_date: f.next_follow_up_date, status: f.status as DashboardData['overdueFollowUps'][0]['status'], notes: f.notes }))
+
+  const upcomingFollowUps = followUps
+    .filter(f => f.next_follow_up_date && f.next_follow_up_date >= today)
+    .slice(0, 5)
+    .map(f => ({ id: f.id, client_id: f.client_id, next_follow_up_date: f.next_follow_up_date, status: f.status as DashboardData['overdueFollowUps'][0]['status'], notes: f.notes }))
+
   return {
     totalProjects,
     activeProjects,
@@ -190,5 +212,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     upcomingDueDates: upcoming.slice(0, 5),
     overdueProjects: overdue.slice(0, 5),
     targetProgress,
+    followUpsDueToday,
+    overdueFollowUps,
+    upcomingFollowUps,
   }
 }

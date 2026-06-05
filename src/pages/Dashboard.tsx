@@ -80,6 +80,7 @@ export default function Dashboard() {
           <Link to="/tasks" className="text-sm text-blue-600 hover:underline">Tasks</Link>
           <Link to="/calendar" className="text-sm text-blue-600 hover:underline">Calendar</Link>
           <Link to="/documents" className="text-sm text-blue-600 hover:underline">Documents</Link>
+          <Link to="/followups" className="text-sm text-blue-600 hover:underline">Follow-ups</Link>
           <button onClick={signOut} className="rounded-lg border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50">
             Logout
           </button>
@@ -248,7 +249,63 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Recent Activity combined */}
+          {/* Follow-ups */}
+          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-orange-700">Follow-ups Due Today</h3>
+              <Link to="/followups" className="text-xs text-blue-600 hover:underline">View all</Link>
+            </div>
+            <p className={`text-3xl font-bold ${data.followUpsDueToday > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+              {data.followUpsDueToday}
+            </p>
+            {data.followUpsDueToday > 0 && (
+              <p className="text-xs text-orange-600 mt-1">Follow-ups need attention today</p>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-red-700">Overdue Follow-ups</h3>
+              <Link to="/followups" className="text-xs text-blue-600 hover:underline">View all</Link>
+            </div>
+            {data.overdueFollowUps.length === 0 ? (
+              <p className="text-sm text-gray-500">No overdue follow-ups.</p>
+            ) : (
+              <div className="space-y-2 max-h-[180px] overflow-y-auto">
+                {data.overdueFollowUps.map(f => (
+                  <div key={f.id} className="rounded-lg bg-red-50 px-3 py-2 text-sm">
+                    <p className="font-medium text-red-800">Client #{f.client_id.slice(0, 8)}</p>
+                    <p className="text-xs text-red-600">
+                      Due {formatDate(f.next_follow_up_date!)} &middot; {f.status?.replace('_', ' ')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">Upcoming Follow-ups</h3>
+              <Link to="/followups" className="text-xs text-blue-600 hover:underline">View all</Link>
+            </div>
+            {data.upcomingFollowUps.length === 0 ? (
+              <p className="text-sm text-gray-500">No upcoming follow-ups.</p>
+            ) : (
+              <div className="space-y-2 max-h-[180px] overflow-y-auto">
+                {data.upcomingFollowUps.map(f => (
+                  <div key={f.id} className="rounded-lg bg-gray-50 px-3 py-2 text-sm">
+                    <p className="font-medium">Client #{f.client_id.slice(0, 8)}</p>
+                    <p className="text-xs text-gray-500">
+                      {formatDate(f.next_follow_up_date!)} &middot; {f.status?.replace('_', ' ')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Payments */}
           <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold">Recent Payments</h3>

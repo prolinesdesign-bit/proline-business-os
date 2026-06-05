@@ -19,8 +19,8 @@
 - **Targets module** — CRUD for revenue targets, this-month progress with daily needed amount, progress bar, overdue/missed tracking
 - **Tasks module** — CRUD, title, description, priority (low/medium/high/urgent), due date, link to project, inline status dropdown for quick status changes, filter by project ID
 - **Documents module** — Upload (PDF/JPG/PNG/DOCX, 10MB limit), preview modal (PDF via iframe, images inline, DOCX shows download prompt), download button via signed URL, delete, link to project, filter by project, Supabase Storage with RLS, document metadata table with migration SQL
-
-- Tagged: `v0.8-documents`
+- **Follow-ups module** — CRUD, client-linked, next/last follow-up dates, notes, status (Pending/Contacted/Waiting Client/Closed), filter by status, expandable follow-up history on client cards, WhatsApp integration with 4 message templates (Payment Reminder/Project Update/Meeting Reminder/Custom), auto-generates `wa.me` links
+- **Dashboard follow-up widgets** — Follow-ups Due Today (count), Overdue Follow-ups list, Upcoming Follow-ups list
 
 ## Not Started
 

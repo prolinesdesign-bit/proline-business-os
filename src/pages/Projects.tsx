@@ -2,17 +2,21 @@ import { useEffect, useState, useCallback } from 'react'
 import type { Project, ProjectFormData } from '../types'
 import { getProjects, createProject, updateProject, deleteProject } from '../lib/api/projects'
 import { getDocumentCounts } from '../lib/api/documents'
+import { supabase } from '../lib/supabase'
 import ProjectCard from '../components/projects/ProjectCard'
 import ProjectForm from '../components/projects/ProjectForm'
+import WhatsAppModal from '../components/WhatsAppModal'
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [docCounts, setDocCounts] = useState<Record<string, number>>({})
+  const [clientWhatsapp, setClientWhatsapp] = useState<Record<string, string>>({})
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
   const [deleting, setDeleting] = useState<Project | null>(null)
+  const [whatsappTarget, setWhatsappTarget] = useState<{ phone: string; name: string } | null>(null)
 
   const fetch = useCallback(async () => {
     setLoading(true)
@@ -20,6 +24,19 @@ export default function Projects() {
       const [data, counts] = await Promise.all([getProjects(search), getDocumentCounts()])
       setProjects(data)
       setDocCounts(counts)
+
+      const ids = data.map(p => p.client_id).filter(Boolean) as string[]
+      if (ids.length > 0) {
+        const { data: clients } = await supabase
+          .from('clients')
+          .select('id, whatsapp, phone, name')
+          .in('id', ids)
+        const map: Record<string, string> = {}
+        for (const c of clients ?? []) {
+          map[c.id] = c.whatsapp || c.phone
+        }
+        setClientWhatsapp(map)
+      }
     } catch (err) {
       console.error(err)
     } finally {
@@ -77,15 +94,27 @@ export default function Projects() {
         </p>
       ) : (
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {projects.map(p => (
-            <ProjectCard
-              key={p.id}
-              project={p}
-              docCount={docCounts[p.id] ?? 0}
-              onEdit={() => { setEditing(p); setShowForm(true) }}
-              onDelete={() => setDeleting(p)}
-            />
-          ))}
+          {projects.map(p => {
+            const wp = p.client_id ? clientWhatsapp[p.client_id] : undefined
+            return (
+              <div key={p.id}>
+                <ProjectCard
+                  project={p}
+                  docCount={docCounts[p.id] ?? 0}
+                  onEdit={() => { setEditing(p); setShowForm(true) }}
+                  onDelete={() => setDeleting(p)}
+                />
+                {wp && (
+                  <button
+                    onClick={() => setWhatsappTarget({ phone: wp, name: p.client_name ?? p.name })}
+                    className="mt-1 rounded-lg bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-600"
+                  >
+                    WhatsApp {p.client_name}
+                  </button>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 
@@ -120,6 +149,14 @@ export default function Projects() {
             </div>
           </div>
         </div>
+      )}
+
+      {whatsappTarget && (
+        <WhatsAppModal
+          phone={whatsappTarget.phone}
+          clientName={whatsappTarget.name}
+          onClose={() => setWhatsappTarget(null)}
+        />
       )}
     </div>
   )

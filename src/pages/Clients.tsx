@@ -1,8 +1,22 @@
 import { useEffect, useState, useCallback } from 'react'
-import type { Client, ClientFormData, ClientStats } from '../types'
+import type { Client, ClientFormData, ClientStats, FollowUpWithClient } from '../types'
 import { getClients, createClient, updateClient, deleteClient } from '../lib/api/clients'
+import { getFollowUpsByClient } from '../lib/api/followups'
 import ClientCard from '../components/clients/ClientCard'
 import ClientForm from '../components/clients/ClientForm'
+import WhatsAppModal from '../components/WhatsAppModal'
+
+const statusColors: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  contacted: 'bg-blue-100 text-blue-800',
+  waiting_client: 'bg-purple-100 text-purple-800',
+  closed: 'bg-green-100 text-green-800',
+}
+
+function formatDate(d: string | null) {
+  if (!d) return '—'
+  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
 
 export default function Clients() {
   const [clients, setClients] = useState<(Client & { stats: ClientStats })[]>([])
@@ -11,6 +25,10 @@ export default function Clients() {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Client | null>(null)
   const [deleting, setDeleting] = useState<Client | null>(null)
+  const [expandedClient, setExpandedClient] = useState<string | null>(null)
+  const [followUps, setFollowUps] = useState<Record<string, FollowUpWithClient[]>>({})
+  const [loadingFu, setLoadingFu] = useState(false)
+  const [whatsappTarget, setWhatsappTarget] = useState<Client | null>(null)
 
   const fetch = useCallback(async () => {
     setLoading(true)
@@ -46,6 +64,25 @@ export default function Clients() {
     fetch()
   }
 
+  async function toggleExpand(clientId: string) {
+    if (expandedClient === clientId) {
+      setExpandedClient(null)
+      return
+    }
+    setExpandedClient(clientId)
+    if (!followUps[clientId]) {
+      setLoadingFu(true)
+      try {
+        const data = await getFollowUpsByClient(clientId)
+        setFollowUps(prev => ({ ...prev, [clientId]: data }))
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoadingFu(false)
+      }
+    }
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <div className="flex items-center justify-between gap-4">
@@ -75,13 +112,55 @@ export default function Clients() {
       ) : (
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {clients.map(c => (
-            <ClientCard
-              key={c.id}
-              client={c}
-              stats={c.stats}
-              onEdit={() => { setEditing(c); setShowForm(true) }}
-              onDelete={() => setDeleting(c)}
-            />
+            <div key={c.id}>
+              <ClientCard
+                client={c}
+                stats={c.stats}
+                onEdit={() => { setEditing(c); setShowForm(true) }}
+                onDelete={() => setDeleting(c)}
+              />
+              <div className="mt-1 flex gap-2">
+                {(c.whatsapp || c.phone) && (
+                  <button
+                    onClick={() => setWhatsappTarget(c)}
+                    className="rounded-lg bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-600"
+                  >
+                    WhatsApp
+                  </button>
+                )}
+                <button
+                  onClick={() => toggleExpand(c.id)}
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  {expandedClient === c.id ? 'Hide follow-ups' : 'Show follow-ups'}
+                </button>
+              </div>
+              {expandedClient === c.id && (
+                <div className="mt-2 rounded-lg border border-gray-100 bg-gray-50 p-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">Follow-up History</h4>
+                  {loadingFu ? (
+                    <p className="text-xs text-gray-400">Loading...</p>
+                  ) : followUps[c.id]?.length === 0 ? (
+                    <p className="text-xs text-gray-400">No follow-ups yet.</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {followUps[c.id]?.map(fu => (
+                        <div key={fu.id} className="flex items-center justify-between rounded bg-white px-2.5 py-1.5 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className={`rounded-full px-1.5 py-0.5 text-xs font-medium ${statusColors[fu.status]}`}>
+                              {fu.status.replace('_', ' ')}
+                            </span>
+                            <span>Next: {formatDate(fu.next_follow_up_date)}</span>
+                            <span>Last: {formatDate(fu.last_follow_up_date)}</span>
+                          </div>
+                          {fu.notes && <span className="truncate max-w-[120px] text-gray-500 ml-2">{fu.notes}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
@@ -111,6 +190,14 @@ export default function Clients() {
             </div>
           </div>
         </div>
+      )}
+
+      {whatsappTarget && (whatsappTarget.whatsapp || whatsappTarget.phone) && (
+        <WhatsAppModal
+          phone={whatsappTarget.whatsapp || whatsappTarget.phone!}
+          clientName={whatsappTarget.name}
+          onClose={() => setWhatsappTarget(null)}
+        />
       )}
     </div>
   )

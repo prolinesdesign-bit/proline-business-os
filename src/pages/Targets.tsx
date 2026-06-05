@@ -64,6 +64,7 @@ export default function Targets() {
           <Link to="/tasks" className="text-sm text-blue-600 hover:underline">Tasks</Link>
           <Link to="/calendar" className="text-sm text-blue-600 hover:underline">Calendar</Link>
           <Link to="/documents" className="text-sm text-blue-600 hover:underline">Documents</Link>
+          <Link to="/followups" className="text-sm text-blue-600 hover:underline">Follow-ups</Link>
           <button onClick={signOut} className="rounded-lg border border-gray-300 px-3 py-1 text-sm hover:bg-gray-50">Logout</button>
         </nav>
       </div>

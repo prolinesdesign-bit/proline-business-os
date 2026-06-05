@@ -29,7 +29,8 @@ src/
 │       ├── calendar.ts      — Calendar events from project dates
 │       ├── targets.ts       — Targets CRUD + monthly progress
 │       ├── tasks.ts          — Tasks CRUD + status update
-│       └── documents.ts     — Documents upload/download + CRUD
+│       ├── documents.ts     — Documents upload/download + CRUD
+│       └── followups.ts     — Follow-ups CRUD + WhatsApp URL generation
 ├── types/
 │   └── index.ts             — Database model types
 ├── context/AuthContext.tsx   — Auth provider + hooks
@@ -47,8 +48,10 @@ src/
 │   │   └── ExpenseForm.tsx   — Add/edit expense modal
 │   ├── targets/
 │   │   └── TargetForm.tsx    — Add/edit target modal
-│   └── tasks/
-│       └── TaskForm.tsx      — Add/edit task modal
+│   ├── tasks/
+│   │   └── TaskForm.tsx      — Add/edit task modal
+│   └── followups/
+│       └── FollowUpForm.tsx   — Add/edit follow-up modal
 ├── pages/
 │   ├── Login.tsx
 │   ├── SignUp.tsx
@@ -60,6 +63,7 @@ src/
 │   ├── Targets.tsx            — Targets list + monthly progress
 │   ├── Tasks.tsx              — Tasks list + status dropdown + CRUD
 │   ├── Documents.tsx          — Upload, view, delete documents
+│   ├── FollowUps.tsx           — Follow-ups list + WhatsApp + CRUD
 │   ├── Payments.tsx          — Payments list + project summaries + CRUD
 │   └── Expenses.tsx          — Expenses list + summary + CRUD
 ├── App.tsx                   — Routes
@@ -74,6 +78,7 @@ src/
 - `v0.5-business-core` — Payments, Expenses, Dashboard
 - `v0.6-dashboard` — Dashboard, INR currency, audit report
 - `v0.7-calendar-targets` — Calendar, Targets
+- `v0.8-documents` — Documents, Tasks, Follow-ups
 
 ## Git
 
@@ -114,7 +119,7 @@ for Proline Architects & Builders.
 
 ## Current Phase
 
-Phase 9: Tasks
+Phase 10: Follow-ups
 
 Completed:
 
@@ -133,9 +138,10 @@ Completed:
 * Targets
 * Documents
 * Tasks
+* Follow-ups
 
 Next:
 
-* Dashboard widgets for tasks (overdue count, recent tasks)
 * Task info on ProjectCards
 * Polish
+* Deploy

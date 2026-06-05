@@ -12,6 +12,7 @@ import Calendar from './pages/Calendar'
 import Targets from './pages/Targets'
 import Tasks from './pages/Tasks'
 import Documents from './pages/Documents'
+import FollowUps from './pages/FollowUps'
 
 export default function App() {
   return (
@@ -96,6 +97,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Documents />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/followups"
+        element={
+          <ProtectedRoute>
+            <FollowUps />
           </ProtectedRoute>
         }
       />

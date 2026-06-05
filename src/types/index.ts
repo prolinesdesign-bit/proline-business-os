@@ -234,6 +234,45 @@ export interface ProjectDocumentCount {
   count: number
 }
 
+export type FollowUpStatus = 'pending' | 'contacted' | 'waiting_client' | 'closed'
+
+export interface FollowUp {
+  id: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  client_id: string
+  next_follow_up_date: string | null
+  last_follow_up_date: string | null
+  notes: string | null
+  status: FollowUpStatus
+}
+
+export type FollowUpFormData = {
+  client_id: string
+  next_follow_up_date: string
+  last_follow_up_date: string
+  notes: string
+  status: FollowUpStatus
+}
+
+export interface FollowUpWithClient extends FollowUp {
+  client_name: string
+  client_whatsapp: string | null
+}
+
+export type WhatsAppTemplate = 'payment_reminder' | 'project_update' | 'meeting_reminder' | 'custom'
+
+export const WHATSAPP_TEMPLATES: Record<WhatsAppTemplate, (clientName: string) => string> = {
+  payment_reminder: (name) =>
+    `Dear ${name}, this is a friendly reminder about your pending payment. Please contact us at your earliest convenience. Thank you, Proline Architects & Builders.`,
+  project_update: (name) =>
+    `Dear ${name}, here is an update on your project. Please contact us for more details. Thank you, Proline Architects & Builders.`,
+  meeting_reminder: (name) =>
+    `Dear ${name}, this is a reminder about our scheduled meeting. Please confirm your availability. Thank you, Proline Architects & Builders.`,
+  custom: () => '',
+}
+
 export interface DashboardData {
   totalProjects: number
   activeProjects: number
@@ -252,4 +291,7 @@ export interface DashboardData {
   upcomingDueDates: Pick<Project, 'id' | 'name' | 'end_date' | 'client_name'>[]
   overdueProjects: Pick<Project, 'id' | 'name' | 'status' | 'end_date' | 'client_name'>[]
   targetProgress: TargetProgress | null
+  followUpsDueToday: number
+  overdueFollowUps: Pick<FollowUp, 'id' | 'client_id' | 'next_follow_up_date' | 'status' | 'notes'>[]
+  upcomingFollowUps: Pick<FollowUp, 'id' | 'client_id' | 'next_follow_up_date' | 'status' | 'notes'>[]
 }
