@@ -1,11 +1,13 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { Project, ProjectFormData } from '../types'
 import { getProjects, createProject, updateProject, deleteProject } from '../lib/api/projects'
+import { getDocumentCounts } from '../lib/api/documents'
 import ProjectCard from '../components/projects/ProjectCard'
 import ProjectForm from '../components/projects/ProjectForm'
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
+  const [docCounts, setDocCounts] = useState<Record<string, number>>({})
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -15,8 +17,9 @@ export default function Projects() {
   const fetch = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await getProjects(search)
+      const [data, counts] = await Promise.all([getProjects(search), getDocumentCounts()])
       setProjects(data)
+      setDocCounts(counts)
     } catch (err) {
       console.error(err)
     } finally {
@@ -78,6 +81,7 @@ export default function Projects() {
             <ProjectCard
               key={p.id}
               project={p}
+              docCount={docCounts[p.id] ?? 0}
               onEdit={() => { setEditing(p); setShowForm(true) }}
               onDelete={() => setDeleting(p)}
             />

@@ -191,6 +191,49 @@ export interface CalendarEvent {
   date: string
 }
 
+export interface Task {
+  id: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  title: string
+  description: string | null
+  status: 'todo' | 'in_progress' | 'done' | 'cancelled'
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  due_date: string | null
+  project_id: string | null
+}
+
+export type TaskFormData = {
+  title: string
+  description: string
+  priority: Task['priority']
+  due_date: string
+  project_id: string
+}
+
+export interface TaskWithProject extends Task {
+  project_name?: string | null
+}
+
+export interface Document {
+  id: string
+  created_at: string
+  updated_at: string
+  user_id: string
+  project_id: string | null
+  name: string
+  file_type: string
+  file_size: number
+  storage_path: string
+  notes: string | null
+}
+
+export interface ProjectDocumentCount {
+  project_id: string
+  count: number
+}
+
 export interface DashboardData {
   totalProjects: number
   activeProjects: number

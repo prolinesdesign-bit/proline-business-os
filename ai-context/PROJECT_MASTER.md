@@ -27,7 +27,9 @@ src/
 │       ├── expenses.ts      — Expenses CRUD + summary
 │       ├── dashboard.ts     — Dashboard KPIs + charts + widgets
 │       ├── calendar.ts      — Calendar events from project dates
-│       └── targets.ts       — Targets CRUD + monthly progress
+│       ├── targets.ts       — Targets CRUD + monthly progress
+│       ├── tasks.ts          — Tasks CRUD + status update
+│       └── documents.ts     — Documents upload/download + CRUD
 ├── types/
 │   └── index.ts             — Database model types
 ├── context/AuthContext.tsx   — Auth provider + hooks
@@ -43,8 +45,10 @@ src/
 │   │   └── PaymentForm.tsx   — Add/edit payment modal
 │   ├── expenses/
 │   │   └── ExpenseForm.tsx   — Add/edit expense modal
-│   └── targets/
-│       └── TargetForm.tsx    — Add/edit target modal
+│   ├── targets/
+│   │   └── TargetForm.tsx    — Add/edit target modal
+│   └── tasks/
+│       └── TaskForm.tsx      — Add/edit task modal
 ├── pages/
 │   ├── Login.tsx
 │   ├── SignUp.tsx
@@ -54,6 +58,8 @@ src/
 │   ├── Dashboard.tsx          — Dashboard KPIs, charts, widgets
 │   ├── Calendar.tsx           — Month view with project dates
 │   ├── Targets.tsx            — Targets list + monthly progress
+│   ├── Tasks.tsx              — Tasks list + status dropdown + CRUD
+│   ├── Documents.tsx          — Upload, view, delete documents
 │   ├── Payments.tsx          — Payments list + project summaries + CRUD
 │   └── Expenses.tsx          — Expenses list + summary + CRUD
 ├── App.tsx                   — Routes
@@ -67,6 +73,7 @@ src/
 - `v0.4-crm` — Client CRM
 - `v0.5-business-core` — Payments, Expenses, Dashboard
 - `v0.6-dashboard` — Dashboard, INR currency, audit report
+- `v0.7-calendar-targets` — Calendar, Targets
 
 ## Git
 
@@ -102,13 +109,12 @@ for Proline Architects & Builders.
 ## Future Modules
 
 * Money Flow
-* Documents
 * Site Visits
 * AI Insights
 
 ## Current Phase
 
-Phase 7: Calendar + Targets
+Phase 9: Tasks
 
 Completed:
 
@@ -125,7 +131,11 @@ Completed:
 * Dashboard
 * Calendar
 * Targets
+* Documents
+* Tasks
 
 Next:
 
-* Tasks
+* Dashboard widgets for tasks (overdue count, recent tasks)
+* Task info on ProjectCards
+* Polish

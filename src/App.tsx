@@ -10,6 +10,8 @@ import Payments from './pages/Payments'
 import Expenses from './pages/Expenses'
 import Calendar from './pages/Calendar'
 import Targets from './pages/Targets'
+import Tasks from './pages/Tasks'
+import Documents from './pages/Documents'
 
 export default function App() {
   return (
@@ -78,6 +80,22 @@ export default function App() {
         element={
           <ProtectedRoute>
             <Targets />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tasks"
+        element={
+          <ProtectedRoute>
+            <Tasks />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/documents"
+        element={
+          <ProtectedRoute>
+            <Documents />
           </ProtectedRoute>
         }
       />

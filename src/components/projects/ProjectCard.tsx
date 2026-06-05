@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Project } from '../../types'
 
 const stageColors: Record<Project['status'], string> = {
@@ -9,11 +10,12 @@ const stageColors: Record<Project['status'], string> = {
 
 interface Props {
   project: Project
+  docCount?: number
   onEdit: (project: Project) => void
   onDelete: (project: Project) => void
 }
 
-export default function ProjectCard({ project, onEdit, onDelete }: Props) {
+export default function ProjectCard({ project, docCount = 0, onEdit, onDelete }: Props) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
@@ -36,6 +38,7 @@ export default function ProjectCard({ project, onEdit, onDelete }: Props) {
         )}
         {project.start_date && <span>Start: {project.start_date}</span>}
         {project.end_date && <span>Due: {project.end_date}</span>}
+        {docCount > 0 && <span>📄 {docCount} document{docCount !== 1 ? 's' : ''}</span>}
       </div>
 
       {project.description && (
@@ -55,6 +58,12 @@ export default function ProjectCard({ project, onEdit, onDelete }: Props) {
         >
           Delete
         </button>
+        <Link
+          to={`/documents`}
+          className="text-sm text-blue-600 hover:underline ml-auto"
+        >
+          {docCount > 0 ? 'Documents' : 'Add Docs'}
+        </Link>
       </div>
     </div>
   )
