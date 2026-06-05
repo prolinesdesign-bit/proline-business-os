@@ -51,8 +51,7 @@ export async function createClient(data: ClientFormData): Promise<Client> {
       name: data.name,
       email: data.email || null,
       phone: data.phone || null,
-      company: data.company || null,
-      whatsapp: data.whatsapp || null,
+      company: data.location || null,
       notes: data.notes || null,
     })
     .select()
@@ -69,8 +68,7 @@ export async function updateClient(id: string, data: ClientFormData): Promise<Cl
       name: data.name,
       email: data.email || null,
       phone: data.phone || null,
-      company: data.company || null,
-      whatsapp: data.whatsapp || null,
+      company: data.location || null,
       notes: data.notes || null,
     })
     .eq('id', id)

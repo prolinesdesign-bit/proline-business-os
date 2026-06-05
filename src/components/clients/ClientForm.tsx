@@ -5,7 +5,7 @@ const emptyForm: ClientFormData = {
   name: '',
   email: '',
   phone: '',
-  company: '',
+  location: '',
   whatsapp: '',
   notes: '',
 }
@@ -23,7 +23,7 @@ export default function ClientForm({ client, onSave, onCancel }: Props) {
           name: client.name,
           email: client.email ?? '',
           phone: client.phone ?? '',
-          company: client.company ?? '',
+          location: client.company ?? '',
           whatsapp: client.whatsapp ?? '',
           notes: client.notes ?? '',
         }
@@ -56,13 +56,34 @@ export default function ClientForm({ client, onSave, onCancel }: Props) {
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Client Name</label>
+            <label className="block text-sm font-medium text-gray-700">Name</label>
             <input
               required
               value={form.name}
               onChange={e => set('name', e.target.value)}
               className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Phone</label>
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={e => set('phone', e.target.value)}
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
+              <input
+                type="tel"
+                value={form.whatsapp}
+                onChange={e => set('whatsapp', e.target.value)}
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -76,31 +97,10 @@ export default function ClientForm({ client, onSave, onCancel }: Props) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Phone</label>
+              <label className="block text-sm font-medium text-gray-700">Location</label>
               <input
-                type="tel"
-                value={form.phone}
-                onChange={e => set('phone', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
-              <input
-                type="tel"
-                value={form.whatsapp}
-                onChange={e => set('whatsapp', e.target.value)}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Company</label>
-              <input
-                value={form.company}
-                onChange={e => set('company', e.target.value)}
+                value={form.location}
+                onChange={e => set('location', e.target.value)}
                 className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
               />
             </div>

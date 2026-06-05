@@ -12,7 +12,7 @@
 - Session persistence with `onAuthStateChange`
 - Tagged: `v0.2-auth`
 - **Projects module** — CRUD, search, stage dropdown, value, client name, dates, notes
-- **Client CRM module** — CRUD, search, whatsapp, phone, email, notes, project counts & total value
+- **Client CRM module** — CRUD, search, name, phone, whatsapp, email, location, notes, project counts, total project value, last updated date
 
 ## Not Started
 

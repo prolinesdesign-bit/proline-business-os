@@ -40,7 +40,7 @@ export type ClientFormData = {
   name: string
   email: string
   phone: string
-  company: string
+  location: string
   whatsapp: string
   notes: string
 }

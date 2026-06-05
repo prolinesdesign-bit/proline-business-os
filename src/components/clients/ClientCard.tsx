@@ -8,6 +8,10 @@ interface Props {
 }
 
 export default function ClientCard({ client, stats, onEdit, onDelete }: Props) {
+  const lastUpdated = client.updated_at
+    ? new Date(client.updated_at).toLocaleDateString()
+    : null
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
@@ -25,10 +29,17 @@ export default function ClientCard({ client, stats, onEdit, onDelete }: Props) {
         {client.whatsapp && <p>💬 {client.whatsapp}</p>}
       </div>
 
-      <div className="mt-3 flex gap-4 text-sm">
-        <span className="font-medium text-blue-700">{stats.project_count} project{stats.project_count !== 1 ? 's' : ''}</span>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        <span className="font-medium text-blue-700">
+          {stats.project_count} project{stats.project_count !== 1 ? 's' : ''}
+        </span>
         {stats.total_value > 0 && (
-          <span className="font-medium text-green-700">${stats.total_value.toLocaleString()}</span>
+          <span className="font-medium text-green-700">
+            ${stats.total_value.toLocaleString()}
+          </span>
+        )}
+        {lastUpdated && (
+          <span className="text-gray-400">Updated {lastUpdated}</span>
         )}
       </div>
 
