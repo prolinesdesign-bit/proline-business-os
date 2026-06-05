@@ -30,6 +30,8 @@ export default function Documents() {
   const [filterProject, setFilterProject] = useState('')
   const [uploading, setUploading] = useState(false)
   const [deleting, setDeleting] = useState<Document | null>(null)
+  const [preview, setPreview] = useState<Document | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploadData, setUploadData] = useState({ project_id: '', notes: '' })
 
@@ -75,10 +77,25 @@ export default function Documents() {
     }
   }
 
+  async function handlePreview(doc: Document) {
+    try {
+      const url = await getDocumentDownloadUrl(doc.storage_path)
+      setPreview(doc)
+      setPreviewUrl(url)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   async function handleDownload(doc: Document) {
     try {
       const url = await getDocumentDownloadUrl(doc.storage_path)
-      window.open(url, '_blank')
+      const a = document.createElement('a')
+      a.href = url
+      a.download = doc.name
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
     } catch (err) {
       console.error(err)
     }
@@ -210,7 +227,8 @@ export default function Documents() {
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">{project?.name ?? '—'}</td>
                       <td className="px-4 py-3 max-w-[150px] truncate text-gray-500">{doc.notes ?? '—'}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-right">
-                        <button onClick={() => handleDownload(doc)} className="text-sm text-blue-600 hover:underline">View</button>
+                        <button onClick={() => handlePreview(doc)} className="text-sm text-blue-600 hover:underline">Preview</button>
+                        <button onClick={() => handleDownload(doc)} className="ml-3 text-sm text-green-600 hover:underline">Download</button>
                         <button onClick={() => setDeleting(doc)} className="ml-3 text-sm text-red-600 hover:underline">Delete</button>
                       </td>
                     </tr>
@@ -221,6 +239,33 @@ export default function Documents() {
           </div>
         )}
       </div>
+
+      {preview && previewUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="flex w-full max-w-4xl flex-col rounded-xl bg-white shadow-xl" style={{ maxHeight: '90vh' }}>
+            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+              <h2 className="font-semibold truncate">{preview.name}</h2>
+              <button onClick={() => { setPreview(null); setPreviewUrl(null) }} className="text-2xl leading-none text-gray-500 hover:text-gray-700">&times;</button>
+            </div>
+            <div className="flex-1 overflow-auto p-2">
+              {preview.file_type === 'application/pdf' ? (
+                <iframe src={previewUrl} className="h-full w-full" style={{ minHeight: '70vh' }} title={preview.name} />
+              ) : preview.file_type.startsWith('image/') ? (
+                <img src={previewUrl} alt={preview.name} className="mx-auto max-h-[75vh] object-contain" />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+                  <span className="text-5xl mb-4">{FILE_ICONS[preview.file_type] ?? '📎'}</span>
+                  <p className="mb-1 font-medium">{preview.name}</p>
+                  <p className="text-sm">Preview not available for this file type.</p>
+                  <button onClick={() => handleDownload(preview)} className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    Download
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
