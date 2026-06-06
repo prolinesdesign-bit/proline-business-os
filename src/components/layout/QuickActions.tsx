@@ -28,7 +28,7 @@ export default function QuickActions() {
               key={a.path}
               onClick={() => handleAction(a.path)}
               title={a.hint}
-              className="flex items-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-lg ring-1 ring-gray-200 hover:bg-gray-50 hover:text-blue-600 transition-all animate-[fadeIn_0.15s_ease-out]"
+              className="flex items-center gap-2 rounded-lg bg-card px-4 py-3 text-sm font-medium text-card-foreground shadow-lg ring-1 ring-border hover:bg-accent hover:text-primary transition-all animate-[fadeIn_0.15s_ease-out]"
             >
               {a.label}
             </button>
@@ -40,7 +40,7 @@ export default function QuickActions() {
       <button
         onClick={() => setOpen(!open)}
         className={`flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg transition-all hover:scale-105 active:scale-95 ${
-          open ? 'bg-gray-700 rotate-45' : 'bg-blue-600'
+          open ? 'bg-muted-foreground rotate-45' : 'bg-primary'
         }`}
         aria-label={open ? 'Close quick actions' : 'Open quick actions'}
       >

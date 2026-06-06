@@ -28,9 +28,12 @@ export async function createProject(data: ProjectFormData): Promise<Project> {
       description: data.description || null,
       status: data.status,
       client_name: data.client_name || null,
+      client_id: data.client_id || null,
       start_date: data.start_date || null,
       end_date: data.end_date || null,
       budget: data.budget ? Number(data.budget) : null,
+      location: data.location || null,
+      location_url: data.location_url || null,
     })
     .select()
     .single()
@@ -47,6 +50,7 @@ export async function updateProject(id: string, data: ProjectFormData): Promise<
       description: data.description || null,
       status: data.status,
       client_name: data.client_name || null,
+      client_id: data.client_id || null,
       start_date: data.start_date || null,
       end_date: data.end_date || null,
       budget: data.budget ? Number(data.budget) : null,

@@ -4,7 +4,7 @@ import type { FollowUp, FollowUpFormData, FollowUpWithClient } from '../../types
 export async function getFollowUps(status?: string): Promise<FollowUpWithClient[]> {
   let query = supabase
     .from('follow_ups')
-    .select('*, clients(name, whatsapp, phone)')
+    .select('*, clients(name, phone)')
     .order('next_follow_up_date', { ascending: true })
 
   if (status) {
@@ -25,14 +25,14 @@ export async function getFollowUps(status?: string): Promise<FollowUpWithClient[
     notes: f.notes as string | null,
     status: f.status as FollowUp['status'],
     client_name: (f.clients as Record<string, unknown>)?.name as string,
-    client_whatsapp: ((f.clients as Record<string, unknown>)?.whatsapp ?? (f.clients as Record<string, unknown>)?.phone) as string | null,
+    client_whatsapp: (f.clients as Record<string, unknown>)?.phone as string | null,
   }))
 }
 
 export async function getFollowUpsByClient(clientId: string): Promise<FollowUpWithClient[]> {
   const { data, error } = await supabase
     .from('follow_ups')
-    .select('*, clients(name, whatsapp, phone)')
+    .select('*, clients(name, phone)')
     .eq('client_id', clientId)
     .order('next_follow_up_date', { ascending: true })
 
@@ -49,7 +49,7 @@ export async function getFollowUpsByClient(clientId: string): Promise<FollowUpWi
     notes: f.notes as string | null,
     status: f.status as FollowUp['status'],
     client_name: (f.clients as Record<string, unknown>)?.name as string,
-    client_whatsapp: ((f.clients as Record<string, unknown>)?.whatsapp ?? (f.clients as Record<string, unknown>)?.phone) as string | null,
+    client_whatsapp: (f.clients as Record<string, unknown>)?.phone as string | null,
   }))
 }
 
@@ -98,6 +98,10 @@ export async function deleteFollowUp(id: string): Promise<void> {
 }
 
 export function generateWhatsAppUrl(phone: string, message: string): string {
-  const cleaned = phone.replace(/\D/g, '')
+  let cleaned = phone.replace(/\D/g, '')
+  // Default to India (+91) if number is 10 digits without country code
+  if (cleaned.length === 10) {
+    cleaned = '91' + cleaned
+  }
   return `https://wa.me/${cleaned}?text=${encodeURIComponent(message)}`
 }

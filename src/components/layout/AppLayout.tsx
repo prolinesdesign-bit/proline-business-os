@@ -5,6 +5,7 @@ import { Toaster } from 'sonner'
 import NavBar from './NavBar'
 import Breadcrumbs from './Breadcrumbs'
 import QuickActions from './QuickActions'
+import ThemeToggle from '../ThemeToggle'
 import { MenuIcon } from './Icons'
 
 interface Props {
@@ -16,20 +17,21 @@ export default function AppLayout({ children }: Props) {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Toaster position="top-right" richColors closeButton />
       <NavBar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="lg:pl-60">
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-gray-200 bg-white px-4 lg:px-6">
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border bg-card px-4 lg:px-6">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 lg:hidden"
+            className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent lg:hidden"
             aria-label="Open navigation menu"
           >
             <MenuIcon className="h-5 w-5" />
           </button>
           <Breadcrumbs />
+          <ThemeToggle />
         </header>
 
         <motion.main

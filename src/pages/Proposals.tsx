@@ -54,11 +54,11 @@ export default function Proposals() {
       if (ids.length > 0) {
         const { data: clients } = await supabase
           .from('clients')
-          .select('id, whatsapp, phone, name')
+          .select('id, phone, name')
           .in('id', ids)
         const map: Record<string, string> = {}
         for (const c of clients ?? []) {
-          map[c.id] = c.whatsapp || c.phone
+          if (c.phone) map[c.id] = c.phone
         }
         setClientWhatsapp(map)
       }

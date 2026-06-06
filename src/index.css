@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --color-primary: #2563eb;
@@ -71,4 +72,32 @@ body {
   background-color: var(--color-background);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.dark {
+  --color-primary: #3b82f6;
+  --color-primary-hover: #60a5fa;
+  --color-primary-light: #1e3a5f;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #94a3b8;
+  --color-secondary-hover: #cbd5e1;
+  --color-secondary-light: #334155;
+  --color-secondary-foreground: #0f172a;
+
+  --color-accent: #1e293b;
+  --color-accent-hover: #334155;
+  --color-accent-foreground: #f8fafc;
+
+  --color-card: #1e293b;
+  --color-card-foreground: #f8fafc;
+
+  --color-muted: #334155;
+  --color-muted-foreground: #94a3b8;
+
+  --color-border: #334155;
+  --color-input: #334155;
+
+  --color-background: #0f172a;
+  --color-foreground: #f8fafc;
 }

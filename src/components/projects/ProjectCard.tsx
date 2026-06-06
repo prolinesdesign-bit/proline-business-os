@@ -24,10 +24,10 @@ export default function ProjectCard({ project, docCount = 0, siteVisitPhotoCount
           )}
         </div>
         <Badge variant={
-          project.status === 'active' ? 'success' :
-          project.status === 'completed' ? 'default' :
+          project.status === 'final_render' || project.status === 'balance_paid' || project.status === 'delivered' || project.status === 'completed' ? 'default' :
+          project.status === 'advance_paid' || project.status === 'active' ? 'success' :
           project.status === 'on_hold' ? 'warning' :
-          'destructive'
+          'secondary'
         }>
           {project.status.replace('_', ' ')}
         </Badge>

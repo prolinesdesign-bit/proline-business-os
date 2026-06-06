@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState, useCallback, useMemo } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import type { Project, ProjectFormData, SiteVisit, ProjectPaymentSummary, CalendarEvent, CalendarDay } from '../types'
-import { getProjects, createProject, updateProject, deleteProject } from '../lib/api/projects'
+import { getProjects, updateProject, deleteProject } from '../lib/api/projects'
 import { getDocumentCounts } from '../lib/api/documents'
 import { getProjectSummaries } from '../lib/api/payments'
 import { supabase } from '../lib/supabase'
@@ -14,6 +14,7 @@ import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Input } from '../components/ui/Input'
+import { Select } from '../components/ui/Select'
 import { toast } from 'sonner'
 import { CardSkeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
@@ -116,7 +117,27 @@ const PERIOD_OPTIONS: { value: Period; label: string }[] = [
   { value: 'custom', label: 'Custom' },
 ]
 
+const STAGE_FILTER_OPTIONS = [
+  { value: '', label: 'All Stages' },
+  { value: 'lead', label: 'Lead' },
+  { value: 'communicated', label: 'Communicated' },
+  { value: 'advance_paid', label: 'Advance Paid' },
+  { value: 'prelim_model', label: 'Prelim Model' },
+  { value: 'discussed', label: 'Discussed' },
+  { value: 'final_render', label: 'Final Render' },
+  { value: 'balance_paid', label: 'Balance Paid' },
+  { value: 'delivered', label: 'Delivered' },
+]
+
+const SORT_OPTIONS: { value: string; label: string }[] = [
+  { value: 'name', label: 'Project Name' },
+  { value: 'client_name', label: 'Client Name' },
+  { value: 'end_date', label: 'Deadline' },
+  { value: 'budget', label: 'Amount' },
+]
+
 export default function Projects() {
+  const navigate = useNavigate()
   const [viewMode, setViewMode] = useState<'card' | 'operations' | 'calendar'>('operations')
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
@@ -135,11 +156,42 @@ export default function Projects() {
   const [period, setPeriod] = useState<Period>('current_month')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
+  const [stageFilter, setStageFilter] = useState('')
+  const [sortBy, setSortBy] = useState('name')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
   const periodRange = getPeriodRange(period, customStart, customEnd)
-  const filteredProjects = periodRange
-    ? projects.filter(p => isProjectInPeriod(p, periodRange.start, periodRange.end))
-    : projects
+
+  const opsProjects = useMemo(() => {
+    let list = periodRange
+      ? projects.filter(p => isProjectInPeriod(p, periodRange.start, periodRange.end))
+      : [...projects]
+
+    if (stageFilter) {
+      list = list.filter(p => p.status === stageFilter)
+    }
+
+    list.sort((a, b) => {
+      let cmp = 0
+      switch (sortBy) {
+        case 'name':
+          cmp = a.name.localeCompare(b.name)
+          break
+        case 'client_name':
+          cmp = (a.client_name ?? '').localeCompare(b.client_name ?? '')
+          break
+        case 'end_date':
+          cmp = (a.end_date ?? '').localeCompare(b.end_date ?? '')
+          break
+        case 'budget':
+          cmp = (a.budget ?? 0) - (b.budget ?? 0)
+          break
+      }
+      return sortDir === 'desc' ? -cmp : cmp
+    })
+
+    return list
+  }, [projects, periodRange, stageFilter, sortBy, sortDir])
 
   const calendarEvents: CalendarEvent[] = projects.flatMap(p => {
     const evts: CalendarEvent[] = []
@@ -204,11 +256,11 @@ export default function Projects() {
       if (ids.length > 0) {
         const { data: clients } = await supabase
           .from('clients')
-          .select('id, whatsapp, phone, name')
+          .select('id, phone, name')
           .in('id', ids)
         const map: Record<string, string> = {}
         for (const c of clients ?? []) {
-          map[c.id] = c.whatsapp || c.phone
+          if (c.phone && c.phone.replace(/\s/g, '')) map[c.id] = c.phone.replace(/\s/g, '')
         }
         setClientWhatsapp(map)
       }
@@ -223,14 +275,17 @@ export default function Projects() {
     fetch()
   }, [fetch])
 
-  async function handleSave(data: ProjectFormData) {
+  async function handleProjectCreated(projectId: string) {
+    toast.success('Project created')
+    setShowForm(false)
+    navigate(`/project/${projectId}`)
+  }
+
+  async function handleEditSave(data: ProjectFormData) {
+    if (!editing) return
     try {
-      if (editing) {
-        await updateProject(editing.id, data)
-      } else {
-        await createProject(data)
-      }
-      toast.success('Project saved')
+      await updateProject(editing.id, data)
+      toast.success('Project updated')
       setShowForm(false)
       setEditing(null)
       fetch()
@@ -257,22 +312,22 @@ export default function Projects() {
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Projects</h1>
         <div className="flex items-center gap-2">
-          <div className="flex overflow-hidden rounded-lg border border-gray-200 text-xs">
+          <div className="flex overflow-hidden rounded-lg border border-border text-xs">
             <button
               onClick={() => setViewMode('card')}
-              className={`px-3 py-1.5 transition-colors ${viewMode === 'card' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+              className={`px-3 py-1.5 transition-colors ${viewMode === 'card' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-accent'}`}
             >
               Cards
             </button>
             <button
               onClick={() => setViewMode('operations')}
-              className={`px-3 py-1.5 transition-colors ${viewMode === 'operations' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+              className={`px-3 py-1.5 transition-colors ${viewMode === 'operations' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-accent'}`}
             >
               Ops
             </button>
             <button
               onClick={() => setViewMode('calendar')}
-              className={`px-3 py-1.5 transition-colors ${viewMode === 'calendar' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+              className={`px-3 py-1.5 transition-colors ${viewMode === 'calendar' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-accent'}`}
             >
               Calendar
             </button>
@@ -302,45 +357,6 @@ export default function Projects() {
         className="mt-4 w-full"
       />
 
-      {/* Period filter — shown in all modes */}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <div className="flex overflow-hidden rounded-lg border border-gray-200 text-xs">
-          {PERIOD_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setPeriod(opt.value)}
-              className={`px-3 py-1.5 transition-colors ${period === opt.value ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-        {period === 'custom' && (
-          <div className="flex items-center gap-2">
-            <Input
-              type="date"
-              value={customStart}
-              onChange={e => setCustomStart(e.target.value)}
-              className="h-7 w-36 text-xs"
-              placeholder="Start"
-            />
-            <span className="text-xs text-muted-foreground">→</span>
-            <Input
-              type="date"
-              value={customEnd}
-              onChange={e => setCustomEnd(e.target.value)}
-              className="h-7 w-36 text-xs"
-              placeholder="End"
-            />
-          </div>
-        )}
-        {periodRange && (
-          <span className="text-xs text-muted-foreground">
-            {periodRange.start} — {periodRange.end}
-          </span>
-        )}
-      </div>
-
       {loading ? (
         viewMode === 'operations' ? (
           <div className="mt-4 space-y-3">
@@ -362,23 +378,23 @@ export default function Projects() {
       ) : viewMode === 'calendar' ? (
         <div className="mt-4">
           <Card className="overflow-hidden">
-            <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
+            <div className="grid grid-cols-7 border-b border-border bg-muted">
               {DAYS.map(d => (
                 <div key={d} className="px-2 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide">{d}</div>
               ))}
             </div>
             {calendarWeeks.map((week, wi) => (
-              <div key={wi} className="grid grid-cols-7 overflow-hidden border-b border-gray-100 last:border-0">
+              <div key={wi} className="grid grid-cols-7 overflow-hidden border-b border-border last:border-0">
                 {week.map((day, di) => (
                   <button
                     key={di}
                     onClick={() => day.events.length > 0 && setSelectedDay(day)}
-                    className={`min-h-[60px] p-1 sm:min-h-[80px] sm:p-1.5 border-r border-gray-100 last:border-0 text-left transition-colors hover:bg-gray-50 ${
-                      !day.isCurrentMonth ? 'bg-gray-50/50' : ''
-                    } ${day.isThisWeek ? 'ring-1 ring-inset ring-blue-200' : ''}`}
+                    className={`min-h-[60px] p-1 sm:min-h-[80px] sm:p-1.5 border-r border-border last:border-0 text-left transition-colors hover:bg-accent ${
+                      !day.isCurrentMonth ? 'bg-muted/50' : ''
+                    } ${day.isThisWeek ? 'ring-1 ring-inset ring-blue-200 dark:ring-blue-400/30' : ''}`}
                   >
                     <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium sm:h-6 sm:w-6 sm:text-xs ${
-                      day.isToday ? 'bg-blue-600 text-white' : day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                      day.isToday ? 'bg-blue-600 text-white' : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
                     }`}>
                       {day.day}
                     </span>
@@ -387,7 +403,7 @@ export default function Projects() {
                         <div
                           key={`${e.id}-${e.type}`}
                           className={`flex items-center gap-1 rounded px-1 py-0.5 text-[10px] font-medium leading-tight ${
-                            isOverdue(e) ? 'bg-red-100 text-red-700' : e.type === 'start' ? 'bg-blue-50 text-blue-700' : 'bg-yellow-50 text-yellow-700'
+                            isOverdue(e) ? 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300' : e.type === 'start' ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300' : 'bg-yellow-50 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-300'
                           }`}
                         >
                           <span className="truncate">{e.name}</span>
@@ -396,7 +412,7 @@ export default function Projects() {
                         </div>
                       ))}
                       {day.events.length > 3 && (
-                        <p className="text-[10px] text-gray-400 pl-1">+{day.events.length - 3} more</p>
+                        <p className="text-[10px] text-muted-foreground pl-1">+{day.events.length - 3} more</p>
                       )}
                     </div>
                   </button>
@@ -412,16 +428,97 @@ export default function Projects() {
         </div>
       ) : viewMode === 'operations' ? (
         <div className="mt-4">
-          {filteredProjects.length === 0 ? (
-            <EmptyState title="No projects in this period" description="Try a different date range." />
+          {/* Ops View Toolbar */}
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {/* Stage filter */}
+            <Select
+              value={stageFilter}
+              onChange={e => setStageFilter(e.target.value)}
+              className="h-7 w-32 text-xs"
+            >
+              {STAGE_FILTER_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </Select>
+
+            {/* Sort */}
+            <div className="flex items-center gap-1">
+              <Select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="h-7 w-32 text-xs"
+              >
+                {SORT_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </Select>
+              <button
+                onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
+                className="flex h-7 w-7 items-center justify-center rounded border border-border bg-card text-xs text-muted-foreground hover:bg-accent"
+                title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
+              >
+                {sortDir === 'asc' ? '\u2191' : '\u2193'}
+              </button>
+            </div>
+
+            {/* Period quick filters */}
+            <div className="flex overflow-hidden rounded-lg border border-border text-xs">
+              {PERIOD_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setPeriod(opt.value)}
+                  className={`px-2 py-1.5 transition-colors ${
+                    period === opt.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-card text-muted-foreground hover:bg-accent'
+                  }`}
+                >
+                  {opt.label === 'Current Month' ? 'This Month' : opt.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom date range */}
+            {period === 'custom' && (
+              <div className="flex items-center gap-1">
+                <Input
+                  type="date"
+                  value={customStart}
+                  onChange={e => setCustomStart(e.target.value)}
+                  className="h-7 w-32 text-xs"
+                  placeholder="Start"
+                />
+                <span className="text-xs text-muted-foreground">→</span>
+                <Input
+                  type="date"
+                  value={customEnd}
+                  onChange={e => setCustomEnd(e.target.value)}
+                  className="h-7 w-32 text-xs"
+                  placeholder="End"
+                />
+              </div>
+            )}
+
+            {periodRange && period !== 'custom' && (
+              <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                {periodRange.start} — {periodRange.end}
+              </span>
+            )}
+          </div>
+
+          {opsProjects.length === 0 ? (
+            <EmptyState title="No projects in this period" description="Try a different date range or stage filter." />
           ) : (
             <ProjectsOperationsView
-              projects={filteredProjects}
+              projects={opsProjects}
               paymentSummaries={paymentSummaries}
               clientWhatsapp={clientWhatsapp}
               onEdit={(p) => { setEditing(p); setShowForm(true) }}
               onDelete={(p) => setDeleting(p)}
-              onWhatsApp={(phone, name) => setWhatsappTarget({ phone, name })}
+              onUpdate={(updated) => {
+                setProjects(prev => prev.map(pr => pr.id === updated.id ? updated : pr))
+              }}
+              onRefresh={fetch}
             />
           )}
         </div>
@@ -457,7 +554,8 @@ export default function Projects() {
       {showForm && (
         <ProjectForm
           project={editing}
-          onSave={handleSave}
+          onSuccess={handleProjectCreated}
+          onSave={handleEditSave}
           onCancel={() => { setShowForm(false); setEditing(null) }}
         />
       )}
@@ -512,10 +610,10 @@ export default function Projects() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant={
-                        e.status === 'active' ? 'success' :
-                        e.status === 'completed' ? 'default' :
+                        e.status === 'final_render' || e.status === 'balance_paid' || e.status === 'delivered' || e.status === 'completed' ? 'default' :
+                        e.status === 'advance_paid' || e.status === 'active' ? 'success' :
                         e.status === 'on_hold' ? 'warning' :
-                        'destructive'
+                        'secondary'
                       }>
                         {e.status.replace('_', ' ')}
                       </Badge>

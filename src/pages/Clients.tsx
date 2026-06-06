@@ -142,7 +142,7 @@ export default function Clients() {
                 onDelete={() => setDeleting(c)}
               />
               <div className="mt-1 flex gap-2">
-                {(c.whatsapp || c.phone) && (
+                {c.phone && (
                   <Button
                     variant="success"
                     size="sm"
@@ -220,9 +220,9 @@ export default function Clients() {
         </div>
       )}
 
-      {whatsappTarget && (whatsappTarget.whatsapp || whatsappTarget.phone) && (
+      {whatsappTarget && whatsappTarget.phone && (
         <WhatsAppModal
-          phone={whatsappTarget.whatsapp || whatsappTarget.phone!}
+          phone={whatsappTarget.phone}
           clientName={whatsappTarget.name}
           onClose={() => setWhatsappTarget(null)}
         />

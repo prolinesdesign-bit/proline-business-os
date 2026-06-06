@@ -201,9 +201,9 @@ export default function Targets() {
 
       {deleting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+          <div className="w-full max-w-sm rounded-xl bg-card p-6 shadow-xl">
             <h2 className="text-lg font-bold">Delete Target</h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-muted-foreground">
               Delete <strong>{deleting.title}</strong>? This cannot be undone.
             </p>
             <div className="mt-5 flex justify-end gap-2">

@@ -49,14 +49,26 @@
 - Table pages (Payments, Expenses, Documents) render as mobile card views
 
 ### Operations View (Default)
-- Dense spreadsheet-like project table with 12 columns (added Notes Preview)
-- Inline stage editing with save-toast
-- Amount / Paid / Balance from payment summaries
-- Days remaining with color-coded labels
-- Notes preview (60 char truncation with tooltip)
-- WhatsApp action per row
+- Dense spreadsheet-like project table with 10 columns (Project, Client, WhatsApp#, Stage, Amount, Advance Paid, Balance, Timeline, Notes, Actions)
+- Stage dropdown with 8 project lifecycle stages (Lead → Communicated → Advance Paid → Prelim Model → Discussed → Final Render → Balance Paid → Delivered), inline editable with save-toast
+- **Amount** (project.budget) — inline editable number input, auto-saves on blur/Enter
+- **Advance Paid** (from payments) — inline editable number input, creates completed payment on save
+- **Balance** (computed = Amount − Advance Paid) — read-only display
+- **Timeline** (start/end dates) — inline editable date inputs, auto-saves on blur
+- **Notes** (project.description) — inline editable text input, auto-saves on blur/Enter
+- WhatsApp Number column showing last 10 digits + "Message" button per row
+- All inline edits persist immediately to DB; parent state refreshed via `onUpdate` callback (no snap-back)
+- WhatsApp: `generateWhatsAppUrl` auto-prepends +91 country code for 10-digit Indian numbers
 - Edit/Del buttons always visible (quick actions)
-- Cards/Operations view toggle available
+- Cards/Ops/Calendar toggle available
+
+### Operations View Toolbar
+- Stage filter dropdown (All Stages + 8 stage options)
+- Sort dropdown (Project Name, Client Name, Deadline, Amount) with asc/desc toggle
+- Period quick filters: Current Month (default), Last Month, Last 6 Months, This Year, Custom
+- Custom date range selector (appears when Custom is selected)
+- Period filter scoped to Operations View only — Cards/Calendar always show all projects
+- Default: shows only Current Month projects when page opens
 
 ### Phase 1 — Productization
 - Operations View is now the default project view

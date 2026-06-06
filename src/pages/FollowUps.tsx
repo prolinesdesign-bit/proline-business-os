@@ -105,8 +105,8 @@ export default function FollowUps() {
               onClick={() => setStatusFilter(sf.value)}
               className={`rounded-full px-3 py-1 text-sm ${
                 statusFilter === sf.value
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-accent'
               }`}
             >
               {sf.label}

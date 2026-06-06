@@ -6,11 +6,16 @@ export default function AuthCallback() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        setError('Authentication failed — no session returned.')
-      }
-    })
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (!session) {
+          setError('Authentication failed — no session returned.')
+        }
+      })
+      .catch(err => {
+        console.error('AuthCallback error:', err)
+        setError('Authentication failed — ' + (err.message ?? 'unknown error'))
+      })
   }, [])
 
   if (error) {

@@ -129,16 +129,16 @@ export default function Calendar() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Calendar</h1>
           <div className="flex items-center gap-2">
-            <div className="flex overflow-hidden rounded-lg border border-gray-200 text-xs mr-2">
+            <div className="flex overflow-hidden rounded-lg border border-border text-xs mr-2">
               <button
                 onClick={() => setViewMode('calendar')}
-                className={`px-3 py-1.5 transition-colors ${viewMode === 'calendar' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+                className={`px-3 py-1.5 transition-colors ${viewMode === 'calendar' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-accent'}`}
               >
                 Calendar
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`px-3 py-1.5 transition-colors ${viewMode === 'list' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+                className={`px-3 py-1.5 transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-accent'}`}
               >
                 List
               </button>
@@ -168,7 +168,7 @@ export default function Calendar() {
                     </p>
                     <div className="space-y-1.5">
                       {evts.map(e => (
-                        <div key={`${e.id}-${e.type}`} className={`flex items-center justify-between rounded-lg px-3 py-2 ${e.type === 'site_visit' ? 'bg-purple-50' : isOverdue(e) ? 'bg-red-50' : 'bg-gray-50'}`}>
+                        <div key={`${e.id}-${e.type}`} className={`flex items-center justify-between rounded-lg px-3 py-2 ${e.type === 'site_visit' ? 'bg-purple-50 dark:bg-purple-950/30' : isOverdue(e) ? 'bg-red-50 dark:bg-red-950/30' : 'bg-muted'}`}>
                           <div className="flex items-center gap-2 min-w-0">
                             <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_COLORS[e.status] ?? 'bg-gray-400'}`} />
                             <div className="min-w-0">
@@ -196,23 +196,23 @@ export default function Calendar() {
         ) : (
           <>
             <Card className="overflow-hidden">
-              <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
+              <div className="grid grid-cols-7 border-b border-border bg-muted">
                 {DAYS.map(d => (
                   <div key={d} className="px-2 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide">{d}</div>
                 ))}
               </div>
               {weeks.map((week, wi) => (
-                <div key={wi} className="grid grid-cols-7 overflow-hidden border-b border-gray-100 last:border-0">
+                <div key={wi} className="grid grid-cols-7 overflow-hidden border-b border-border last:border-0">
                   {week.map((day, di) => (
                     <button
                       key={di}
                       onClick={() => day.events.length > 0 && setSelectedDay(day)}
-                      className={`min-h-[60px] p-1 sm:min-h-[90px] sm:p-1.5 border-r border-gray-100 last:border-0 text-left transition-colors hover:bg-gray-50 ${
-                        !day.isCurrentMonth ? 'bg-gray-50/50' : ''
-                      } ${day.isThisWeek ? 'ring-1 ring-inset ring-blue-200' : ''}`}
+                      className={`min-h-[60px] p-1 sm:min-h-[90px] sm:p-1.5 border-r border-border last:border-0 text-left transition-colors hover:bg-accent ${
+                        !day.isCurrentMonth ? 'bg-muted/50' : ''
+                      } ${day.isThisWeek ? 'ring-1 ring-inset ring-blue-200 dark:ring-blue-400/30' : ''}`}
                     >
                       <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium sm:h-6 sm:w-6 sm:text-xs ${
-                        day.isToday ? 'bg-blue-600 text-white' : day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                        day.isToday ? 'bg-blue-600 text-white' : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
                       }`}>
                         {day.day}
                       </span>
@@ -221,18 +221,18 @@ export default function Calendar() {
                           <div
                             key={`${e.id}-${e.type}`}
                             className={`flex items-center gap-1 rounded px-1 py-0.5 text-[10px] font-medium leading-tight ${
-                              isOverdue(e) ? 'bg-red-100 text-red-700' : e.type === 'site_visit' ? 'bg-purple-100 text-purple-700' : 'bg-blue-50 text-blue-700'
+                              isOverdue(e) ? 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300' : e.type === 'site_visit' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
                             }`}
                           >
                             <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${STATUS_COLORS[e.status] ?? 'bg-gray-400'}`} />
                             <span className="truncate">{e.name}</span>
                             {e.type === 'start' && <span className="shrink-0 opacity-60">S</span>}
                             {e.type === 'due' && <span className="shrink-0 opacity-60">D</span>}
-                            {e.type === 'site_visit' && <span className="shrink-0 opacity-60 text-purple-600">V</span>}
+                            {e.type === 'site_visit' && <span className="shrink-0 opacity-60 text-purple-600 dark:text-purple-400">V</span>}
                           </div>
                         ))}
                         {day.events.length > 3 && (
-                          <p className="text-[10px] text-gray-400 pl-1">+{day.events.length - 3} more</p>
+                          <p className="text-[10px] text-muted-foreground pl-1">+{day.events.length - 3} more</p>
                         )}
                       </div>
                     </button>
@@ -248,7 +248,7 @@ export default function Calendar() {
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-500" /> On Hold</span>
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500" /> Cancelled</span>
               <span className="flex items-center gap-1"><Badge variant="destructive" className="rounded-sm px-1.5 py-0.5">Overdue</Badge></span>
-              <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-full border-2 border-blue-200" /> This Week</span>
+               <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-full border-2 border-blue-200 dark:border-blue-400/30" /> This Week</span>
               <span className="flex items-center gap-1">S = Start &nbsp; D = Due</span>
             </div>
           </>
@@ -257,19 +257,19 @@ export default function Calendar() {
         {/* Day detail modal */}
         {selectedDay && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setSelectedDay(null)}>
-            <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="w-full max-w-lg rounded-xl bg-card p-6 shadow-xl" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold">
                   {selectedDay.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </h2>
-                <button onClick={() => setSelectedDay(null)} className="text-gray-400 hover:text-gray-600">&times;</button>
+                <button onClick={() => setSelectedDay(null)} className="text-muted-foreground hover:text-foreground">&times;</button>
               </div>
               {selectedDay.events.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No events on this day.</p>
               ) : (
                 <div className="space-y-2">
                   {selectedDay.events.map(e => (
-                    <div key={`${e.id}-${e.type}`} className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3">
+                    <div key={`${e.id}-${e.type}`} className="flex items-center justify-between rounded-lg bg-muted px-4 py-3">
                       <div>
                         <p className="text-sm font-medium">{e.name}</p>
                         <p className="text-xs text-muted-foreground">
@@ -278,10 +278,10 @@ export default function Calendar() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge variant={
-                          e.status === 'active' ? 'success' :
-                          e.status === 'completed' ? 'default' :
+                          e.status === 'final_render' || e.status === 'balance_paid' || e.status === 'delivered' || e.status === 'completed' ? 'default' :
+                          e.status === 'advance_paid' || e.status === 'active' ? 'success' :
                           e.status === 'on_hold' ? 'warning' :
-                          'destructive'
+                          'secondary'
                         }>
                           {STATUS_LABELS[e.status] ?? e.status}
                         </Badge>

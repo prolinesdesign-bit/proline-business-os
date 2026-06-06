@@ -29,7 +29,7 @@ export default function ClientCard({ client, stats, onEdit, onDelete }: Props) {
       <div className="mt-2 space-y-1 text-sm text-muted-foreground">
         {client.email && <p>✉ {client.email}</p>}
         {client.phone && <p>📞 {client.phone}</p>}
-        {client.whatsapp && <p>💬 {client.whatsapp}</p>}
+        {client.source && <p className="text-xs text-muted-foreground">Source: {client.source}</p>}
       </div>
 
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">

@@ -5,22 +5,33 @@ export interface Project {
   user_id: string
   name: string
   description: string | null
-  status: 'active' | 'completed' | 'on_hold' | 'cancelled'
+  status: string
   client_name: string | null
   client_id: string | null
   start_date: string | null
   end_date: string | null
   budget: number | null
+  project_type: string | null
+  location: string | null
+  location_url: string | null
+  expected_timeline: string | null
+  expected_payment_date: string | null
 }
 
 export type ProjectFormData = {
   name: string
   description: string
-  status: Project['status']
+  status: string
   client_name: string
+  client_id: string
   start_date: string
   end_date: string
   budget: string
+  project_type: string
+  location: string
+  location_url: string
+  expected_timeline: string
+  expected_payment_date: string
 }
 
 export interface Client {
@@ -32,16 +43,20 @@ export interface Client {
   email: string | null
   phone: string | null
   company: string | null
-  whatsapp: string | null
   notes: string | null
+  address: string | null
+  source: string | null
 }
+
+export const CLIENT_SOURCES = ['Referral', 'Instagram', 'Website', 'Walk-in', 'Other'] as const
 
 export type ClientFormData = {
   name: string
   email: string
   phone: string
-  location: string
-  whatsapp: string
+  company: string
+  address: string
+  source: string
   notes: string
 }
 

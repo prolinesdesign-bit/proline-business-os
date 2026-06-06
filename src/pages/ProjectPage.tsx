@@ -78,23 +78,29 @@ export default function ProjectPage() {
 
   useEffect(() => {
     if (!id) return
+    let cancelled = false
     setLoading(true)
     getProjects('')
       .then(all => {
-        const p = all.find(x => x.id === id)
-        setProject(p ?? null)
+        if (!cancelled) {
+          const p = all.find(x => x.id === id)
+          setProject(p ?? null)
+        }
       })
       .catch(err => console.error('Failed to load project:', err))
-      .finally(() => setLoading(false))
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [id])
 
   useEffect(() => {
     if (!id) return
+    let cancelled = false
     setEventsLoading(true)
     getProjectCalendarEvents(id)
-      .then(setEvents)
+      .then(events => { if (!cancelled) setEvents(events) })
       .catch(console.error)
-      .finally(() => setEventsLoading(false))
+      .finally(() => { if (!cancelled) setEventsLoading(false) })
+    return () => { cancelled = true }
   }, [id])
 
   const groupedEvents = useMemo(() => {
@@ -244,16 +250,16 @@ export default function ProjectPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Schedule</h2>
             <div className="flex items-center gap-2">
-              <div className="flex overflow-hidden rounded-lg border border-gray-200 text-xs">
+              <div className="flex overflow-hidden rounded-lg border border-border text-xs">
                 <button
                   onClick={() => setViewMode('calendar')}
-                  className={`px-3 py-1.5 transition-colors ${viewMode === 'calendar' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+                  className={`px-3 py-1.5 transition-colors ${viewMode === 'calendar' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-accent'}`}
                 >
                   Calendar
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`px-3 py-1.5 transition-colors ${viewMode === 'list' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+                  className={`px-3 py-1.5 transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:bg-accent'}`}
                 >
                   List
                 </button>
@@ -288,7 +294,7 @@ export default function ProjectPage() {
                     </p>
                     <div className="space-y-1.5">
                       {evts.map(e => (
-                        <div key={`${e.id}-${e.type}`} className={`flex items-center justify-between rounded-lg px-3 py-2 ${e.type === 'site_visit' ? 'bg-purple-50' : isOverdue(e) ? 'bg-red-50' : 'bg-gray-50'}`}>
+                        <div key={`${e.id}-${e.type}`} className={`flex items-center justify-between rounded-lg px-3 py-2 ${e.type === 'site_visit' ? 'bg-purple-50 dark:bg-purple-950/30' : isOverdue(e) ? 'bg-red-50 dark:bg-red-950/30' : 'bg-muted'}`}>
                           <div className="flex items-center gap-2 min-w-0">
                             <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_COLORS[e.status] ?? 'bg-gray-400'}`} />
                             <div className="min-w-0">
@@ -313,23 +319,23 @@ export default function ProjectPage() {
           ) : (
             <>
               <Card className="overflow-hidden">
-                <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
+                <div className="grid grid-cols-7 border-b border-border bg-muted">
                   {DAYS.map(d => (
                     <div key={d} className="px-2 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide">{d}</div>
                   ))}
                 </div>
                 {weeks.map((week, wi) => (
-                  <div key={wi} className="grid grid-cols-7 overflow-hidden border-b border-gray-100 last:border-0">
+                  <div key={wi} className="grid grid-cols-7 overflow-hidden border-b border-border last:border-0">
                     {week.map((day, di) => (
                       <button
                         key={di}
                         onClick={() => day.events.length > 0 && setSelectedDay(day)}
-                        className={`min-h-[50px] p-1 border-r border-gray-100 last:border-0 text-left transition-colors hover:bg-gray-50 ${
-                          !day.isCurrentMonth ? 'bg-gray-50/50' : ''
-                        } ${day.isThisWeek ? 'ring-1 ring-inset ring-blue-200' : ''}`}
+                        className={`min-h-[50px] p-1 border-r border-border last:border-0 text-left transition-colors hover:bg-accent ${
+                          !day.isCurrentMonth ? 'bg-muted/50' : ''
+                        } ${day.isThisWeek ? 'ring-1 ring-inset ring-blue-200 dark:ring-blue-400/30' : ''}`}
                       >
                         <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium ${
-                          day.isToday ? 'bg-blue-600 text-white' : day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                          day.isToday ? 'bg-blue-600 text-white' : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
                         }`}>
                           {day.day}
                         </span>
@@ -338,7 +344,7 @@ export default function ProjectPage() {
                             <div
                               key={`${e.id}-${e.type}`}
                               className={`flex items-center gap-1 rounded px-1 py-0.5 text-[10px] font-medium leading-tight ${
-                                isOverdue(e) ? 'bg-red-100 text-red-700' : e.type === 'site_visit' ? 'bg-purple-100 text-purple-700' : 'bg-blue-50 text-blue-700'
+                                isOverdue(e) ? 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300' : e.type === 'site_visit' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
                               }`}
                             >
                               <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${STATUS_COLORS[e.status] ?? 'bg-gray-400'}`} />
@@ -346,7 +352,7 @@ export default function ProjectPage() {
                             </div>
                           ))}
                           {day.events.length > 2 && (
-                            <p className="text-[10px] text-gray-400 pl-1">+{day.events.length - 2} more</p>
+                            <p className="text-[10px] text-muted-foreground pl-1">+{day.events.length - 2} more</p>
                           )}
                         </div>
                       </button>
@@ -386,10 +392,10 @@ export default function ProjectPage() {
                           </p>
                         </div>
                         <Badge variant={
-                          e.status === 'active' ? 'success' :
-                          e.status === 'completed' ? 'default' :
+                          e.status === 'final_render' || e.status === 'balance_paid' || e.status === 'delivered' || e.status === 'completed' ? 'default' :
+                          e.status === 'advance_paid' || e.status === 'active' ? 'success' :
                           e.status === 'on_hold' ? 'warning' :
-                          'destructive'
+                          'secondary'
                         }>
                           {e.status.replace('_', ' ')}
                         </Badge>

@@ -15,19 +15,24 @@ export default function Login() {
     e.preventDefault()
     setError(null)
     setSubmitting(true)
-    const err = await signIn(email, password)
-    if (err) setError(err)
-    setSubmitting(false)
+    try {
+      const err = await signIn(email, password)
+      if (err) setError(err)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm rounded-xl bg-card p-8 shadow-lg">
         <h1 className="mb-6 text-center text-2xl font-bold">Sign In</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-foreground">Email</label>
             <input
               id="email"
               type="email"
@@ -39,18 +44,18 @@ export default function Login() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-foreground">Password</label>
             <input
               id="password"
               type="password"
               required
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="mt-1 w-full rounded-lg border border-input bg-card px-3 py-2 text-sm focus:border-ring focus:outline-none"
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <button
             type="submit"
@@ -62,14 +67,14 @@ export default function Login() {
         </form>
 
         <div className="my-4 flex items-center gap-2">
-          <div className="h-px flex-1 bg-gray-200" />
-          <span className="text-xs text-gray-400">or</span>
-          <div className="h-px flex-1 bg-gray-200" />
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">or</span>
+          <div className="h-px flex-1 bg-border" />
         </div>
 
         <button
           onClick={signInWithGoogle}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium hover:bg-accent"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -80,9 +85,9 @@ export default function Login() {
           Sign in with Google
         </button>
 
-        <p className="mt-6 text-center text-sm text-gray-500">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           No account?{' '}
-          <Link to="/signup" className="text-blue-600 hover:underline">Sign Up</Link>
+          <Link to="/signup" className="text-primary hover:underline">Sign Up</Link>
         </p>
       </div>
     </div>

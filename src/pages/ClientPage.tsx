@@ -1,24 +1,44 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getClients } from '../lib/api/clients'
 import { getProjects } from '../lib/api/projects'
 import { getProjectSummaries } from '../lib/api/payments'
 import type { Client, Project, ProjectPaymentSummary } from '../types'
 import AppLayout from '../components/layout/AppLayout'
+import ProjectForm from '../components/projects/ProjectForm'
 import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Skeleton } from '../components/ui/Skeleton'
+import { toast } from 'sonner'
+
+const badgeVariant: Record<string, 'success' | 'default' | 'warning' | 'destructive' | 'secondary'> = {
+  active: 'success',
+  completed: 'default',
+  on_hold: 'warning',
+  cancelled: 'destructive',
+  advance_paid: 'success',
+  delivered: 'default',
+  final_render: 'default',
+  balance_paid: 'default',
+  lead: 'secondary',
+  communicated: 'secondary',
+  prelim_model: 'secondary',
+  discussed: 'secondary',
+}
 
 export default function ClientPage() {
+  const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [client, setClient] = useState<Client | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
   const [summaries, setSummaries] = useState<ProjectPaymentSummary[]>([])
   const [loading, setLoading] = useState(true)
+  const [showNewProject, setShowNewProject] = useState(false)
 
   useEffect(() => {
     if (!id) return
+    let cancelled = false
     setLoading(true)
     Promise.all([
       getClients(''),
@@ -26,13 +46,16 @@ export default function ClientPage() {
       getProjectSummaries(),
     ])
       .then(([clients, projs, sums]) => {
-        const c = clients.find(x => x.id === id)
-        setClient(c ?? null)
-        setProjects(projs.filter(p => p.client_id === id))
-        setSummaries(sums)
+        if (!cancelled) {
+          const c = clients.find(x => x.id === id)
+          setClient(c ?? null)
+          setProjects(projs.filter(p => p.client_id === id))
+          setSummaries(sums)
+        }
       })
       .catch(err => console.error('Failed to load client:', err))
-      .finally(() => setLoading(false))
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
   }, [id])
 
   const totalValue = projects.reduce((sum, p) => sum + (p.budget ?? 0), 0)
@@ -41,14 +64,23 @@ export default function ClientPage() {
     return sum + (s?.total_paid ?? 0)
   }, 0)
   const balanceDue = totalValue - totalPaid
+  const activeProjects = projects.filter(p =>
+    !['completed', 'delivered', 'cancelled'].includes(p.status)
+  ).length
+
+  function handleProjectCreated(projectId: string) {
+    toast.success('Project created')
+    setShowNewProject(false)
+    navigate(`/project/${projectId}`)
+  }
 
   if (loading) {
     return (
       <AppLayout>
         <div className="mx-auto max-w-5xl px-4 py-6">
           <Skeleton className="h-8 w-64 mb-4" />
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Skeleton className="h-24" /><Skeleton className="h-24" /><Skeleton className="h-24" />
+          <div className="grid gap-4 sm:grid-cols-4">
+            <Skeleton className="h-24" /><Skeleton className="h-24" /><Skeleton className="h-24" /><Skeleton className="h-24" />
           </div>
         </div>
       </AppLayout>
@@ -79,16 +111,13 @@ export default function ClientPage() {
           <div>
             <h1 className="text-2xl font-bold">{client.name}</h1>
             {client.company && <p className="text-muted-foreground">{client.company}</p>}
+            {client.address && <p className="text-xs text-muted-foreground mt-0.5">{client.address}</p>}
           </div>
           <div className="flex gap-2">
-            {(client.whatsapp || client.phone) && (
-              <Button
-                variant="success"
-                size="sm"
-                asChild
-              >
+            {client.phone && (
+              <Button variant="success" size="sm" asChild>
                 <a
-                  href={`https://wa.me/${(client.whatsapp ?? client.phone ?? '').replace(/\D/g, '')}`}
+                  href={`https://wa.me/${client.phone.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -96,16 +125,35 @@ export default function ClientPage() {
                 </a>
               </Button>
             )}
+            <Button size="sm" onClick={() => setShowNewProject(true)}>
+              + New Project
+            </Button>
           </div>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
           {client.phone && <span>📞 {client.phone}</span>}
           {client.email && <span>✉️ {client.email}</span>}
-          {client.whatsapp && <span>💬 {client.whatsapp}</span>}
+          {client.source && (
+            <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium">
+              Source: {client.source}
+            </span>
+          )}
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-4">
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs font-medium uppercase text-muted-foreground">Total Projects</p>
+              <p className="mt-1 text-xl font-bold">{projects.length}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs font-medium uppercase text-muted-foreground">Active Projects</p>
+              <p className="mt-1 text-xl font-bold">{activeProjects}</p>
+            </CardContent>
+          </Card>
           <Card>
             <CardContent className="p-4">
               <p className="text-xs font-medium uppercase text-muted-foreground">Total Revenue</p>
@@ -118,25 +166,26 @@ export default function ClientPage() {
               <p className="mt-1 text-xl font-bold">₹{balanceDue.toLocaleString()}</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4">
-              <p className="text-xs font-medium uppercase text-muted-foreground">Projects</p>
-              <p className="mt-1 text-xl font-bold">{projects.length}</p>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="mt-8">
-          <h2 className="text-lg font-semibold">Projects</h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Projects ({projects.length})</h2>
+            <Button size="sm" variant="outline" onClick={() => setShowNewProject(true)}>
+              + New Project
+            </Button>
+          </div>
           {projects.length === 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">No projects for this client yet.</p>
+            <div className="text-center py-12">
+              <p className="text-sm text-muted-foreground">No projects for this client yet.</p>
+              <Button className="mt-3" size="sm" onClick={() => setShowNewProject(true)}>
+                Create First Project
+              </Button>
+            </div>
           ) : (
-            <div className="mt-3 space-y-2">
+            <div className="space-y-2">
               {projects.map(p => {
                 const s = summaries.find(x => x.project_id === p.id)
-                const badgeVariant: Record<string, 'success' | 'default' | 'warning' | 'destructive'> = {
-                  active: 'success', completed: 'default', on_hold: 'warning', cancelled: 'destructive',
-                }
                 return (
                   <Card key={p.id}>
                     <CardContent className="p-3">
@@ -147,11 +196,13 @@ export default function ClientPage() {
                           </Link>
                           <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                             <span>₹{p.budget?.toLocaleString() ?? '-'}</span>
+                            {p.project_type && <span>{p.project_type}</span>}
                             {p.end_date && <span>Due: {p.end_date}</span>}
                             <span>Paid: ₹{(s?.total_paid ?? 0).toLocaleString()}</span>
+                            {p.location && <span>📍 {p.location}</span>}
                           </div>
                         </div>
-                        <Badge variant={badgeVariant[p.status] ?? 'default'}>
+                        <Badge variant={badgeVariant[p.status] ?? 'secondary'}>
                           {p.status.replace('_', ' ')}
                         </Badge>
                       </div>
@@ -162,7 +213,22 @@ export default function ClientPage() {
             </div>
           )}
         </div>
+
+        {client.notes && (
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold text-muted-foreground mb-1">Notes</h3>
+            <p className="text-sm whitespace-pre-wrap">{client.notes}</p>
+          </div>
+        )}
       </div>
+
+      {showNewProject && (
+        <ProjectForm
+          prefillClientId={client.id}
+          onSuccess={handleProjectCreated}
+          onCancel={() => setShowNewProject(false)}
+        />
+      )}
     </AppLayout>
   )
 }

@@ -3,6 +3,7 @@ import type { Proposal, ProposalFormData, ProposalTemplate, Client, ClientFormDa
 import { TEMPLATE_LABELS } from '../../types'
 import { getClients, createClient } from '../../lib/api/clients'
 import { getProjects } from '../../lib/api/projects'
+import ClientForm from '../clients/ClientForm'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Textarea } from '../ui/Textarea'
@@ -26,7 +27,7 @@ export default function ProposalForm({ proposal, selectedClient, selectedProject
   const [clients, setClients] = useState<Client[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [showNewClient, setShowNewClient] = useState(false)
-  const [newClientForm, setNewClientForm] = useState<ClientFormData>({ name: '', email: '', phone: '', whatsapp: '', location: '', notes: '' })
+  const [newClientForm, setNewClientForm] = useState<ClientFormData>({ name: '', email: '', phone: '', company: '', address: '', source: '', notes: '' })
   const [savingClient, setSavingClient] = useState(false)
   const [form, setForm] = useState<ProposalFormData>(() =>
     proposal
@@ -142,34 +143,15 @@ export default function ProposalForm({ proposal, selectedClient, selectedProject
 
           {/* Inline New Client Form */}
           {showNewClient && (
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-3">
               <h4 className="mb-2 text-sm font-semibold text-blue-800">New Client</h4>
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  required
-                  value={newClientForm.name}
-                  onChange={e => setNewClientForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Client name *"
-                  className="col-span-2"
-                />
-                <Input
-                  value={newClientForm.phone}
-                  onChange={e => setNewClientForm(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Phone"
-                />
-                <Input
-                  value={newClientForm.email}
-                  onChange={e => setNewClientForm(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Email"
-                  type="email"
-                />
-              </div>
+              <ClientForm mode="inline" value={newClientForm} onChange={setNewClientForm} />
               <div className="mt-2 flex justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => { setShowNewClient(false); setNewClientForm({ name: '', email: '', phone: '', whatsapp: '', location: '', notes: '' }) }}
+                  onClick={() => { setShowNewClient(false); setNewClientForm({ name: '', email: '', phone: '', company: '', address: '', source: '', notes: '' }) }}
                 >
                   Cancel
                 </Button>
@@ -186,7 +168,7 @@ export default function ProposalForm({ proposal, selectedClient, selectedProject
                       setClients(updated)
                       setForm(prev => ({ ...prev, client_id: client.id }))
                       setShowNewClient(false)
-                      setNewClientForm({ name: '', email: '', phone: '', whatsapp: '', location: '', notes: '' })
+                      setNewClientForm({ name: '', email: '', phone: '', company: '', address: '', source: '', notes: '' })
                     } catch (err) {
                       console.error('Failed to create client:', err)
                     } finally {

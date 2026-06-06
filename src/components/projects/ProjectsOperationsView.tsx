@@ -3,7 +3,10 @@ import { Link } from 'react-router-dom'
 import type { Project } from '../../types'
 import type { ProjectPaymentSummary } from '../../types'
 import { updateProject } from '../../lib/api/projects'
+import { createPayment } from '../../lib/api/payments'
+import { generateWhatsAppUrl } from '../../lib/api/followups'
 import { Button } from '../ui/Button'
+import { Input } from '../ui/Input'
 import { Select } from '../ui/Select'
 import { Card, CardContent } from '../ui/Card'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../ui/Table'
@@ -15,14 +18,19 @@ interface Props {
   clientWhatsapp: Record<string, string>
   onEdit: (project: Project) => void
   onDelete: (project: Project) => void
-  onWhatsApp: (phone: string, name: string) => void
+  onUpdate: (project: Project) => void
+  onRefresh: () => void
 }
 
 const STAGES = [
-  { value: 'active', label: 'Active' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'on_hold', label: 'On Hold' },
-  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'lead', label: 'Lead' },
+  { value: 'communicated', label: 'Communicated' },
+  { value: 'advance_paid', label: 'Advance Paid' },
+  { value: 'prelim_model', label: 'Prelim Model' },
+  { value: 'discussed', label: 'Discussed' },
+  { value: 'final_render', label: 'Final Render' },
+  { value: 'balance_paid', label: 'Balance Paid' },
+  { value: 'delivered', label: 'Delivered' },
 ]
 
 function formatCurrency(n: number): string {
@@ -31,25 +39,189 @@ function formatCurrency(n: number): string {
 
 export default function ProjectsOperationsView({
   projects, paymentSummaries, clientWhatsapp,
-  onEdit, onDelete, onWhatsApp,
+  onEdit, onDelete, onUpdate, onRefresh,
 }: Props) {
   const [updating, setUpdating] = useState<Record<string, boolean>>({})
+  const [editValues, setEditValues] = useState<Record<string, Record<string, string>>>({})
+
+  function getEdit(projectId: string, field: string): string {
+    return editValues[projectId]?.[field] ?? ''
+  }
+
+  function setEdit(projectId: string, field: string, value: string) {
+    setEditValues(prev => ({
+      ...prev,
+      [projectId]: { ...(prev[projectId] ?? {}), [field]: value },
+    }))
+  }
+
+  function clearEdit(projectId: string) {
+    setEditValues(prev => {
+      const next = { ...prev }
+      delete next[projectId]
+      return next
+    })
+  }
 
   async function handleStageChange(projectId: string, status: string) {
     setUpdating(prev => ({ ...prev, [projectId]: true }))
     try {
       const project = projects.find(p => p.id === projectId)
       if (!project) return
-      await updateProject(projectId, {
+      const updated = await updateProject(projectId, {
         name: project.name,
         description: project.description ?? '',
-        status: status as Project['status'],
+        status: status,
         client_name: project.client_name ?? '',
+        client_id: project.client_id ?? '',
         start_date: project.start_date ?? '',
         end_date: project.end_date ?? '',
         budget: project.budget?.toString() ?? '',
+        project_type: project.project_type ?? '',
+        location: project.location ?? '',
+        expected_timeline: project.expected_timeline ?? '',
+        expected_payment_date: project.expected_payment_date ?? '',
+        location_url: project.location_url ?? '',
       })
+      onUpdate(updated)
       toast.success('Stage updated')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setUpdating(prev => ({ ...prev, [projectId]: false }))
+    }
+  }
+
+  async function handleAmountBlur(projectId: string) {
+    const val = getEdit(projectId, 'budget')
+    if (!val) { clearEdit(projectId); return }
+    const project = projects.find(p => p.id === projectId)
+    if (!project) return
+    if (Number(val) === (project.budget ?? 0)) { clearEdit(projectId); return }
+
+    setUpdating(prev => ({ ...prev, [projectId]: true }))
+    try {
+      const updated = await updateProject(projectId, {
+        name: project.name,
+        description: project.description ?? '',
+        status: project.status,
+        client_name: project.client_name ?? '',
+        client_id: project.client_id ?? '',
+        start_date: project.start_date ?? '',
+        end_date: project.end_date ?? '',
+        budget: val,
+        project_type: project.project_type ?? '',
+        location: project.location ?? '',
+        expected_timeline: project.expected_timeline ?? '',
+        expected_payment_date: project.expected_payment_date ?? '',
+        location_url: project.location_url ?? '',
+      })
+      onUpdate(updated)
+      clearEdit(projectId)
+      toast.success('Amount updated')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setUpdating(prev => ({ ...prev, [projectId]: false }))
+    }
+  }
+
+  async function handleTimelineBlur(projectId: string, field: 'start_date' | 'end_date') {
+    const val = getEdit(projectId, field)
+    const project = projects.find(p => p.id === projectId)
+    if (!project) return
+    if (val === (project[field] ?? '')) { clearEdit(projectId); return }
+
+    setUpdating(prev => ({ ...prev, [projectId]: true }))
+    try {
+      const start = field === 'start_date' ? val : (project.start_date ?? '')
+      const end = field === 'end_date' ? val : (project.end_date ?? '')
+      const updated = await updateProject(projectId, {
+        name: project.name,
+        description: project.description ?? '',
+        status: project.status,
+        client_name: project.client_name ?? '',
+        client_id: project.client_id ?? '',
+        start_date: start,
+        end_date: end,
+        budget: project.budget?.toString() ?? '',
+        project_type: project.project_type ?? '',
+        location: project.location ?? '',
+        expected_timeline: project.expected_timeline ?? '',
+        expected_payment_date: project.expected_payment_date ?? '',
+        location_url: project.location_url ?? '',
+      })
+      onUpdate(updated)
+      clearEdit(projectId)
+      toast.success('Date updated')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setUpdating(prev => ({ ...prev, [projectId]: false }))
+    }
+  }
+
+  async function handleNotesBlur(projectId: string) {
+    const val = getEdit(projectId, 'description')
+    const project = projects.find(p => p.id === projectId)
+    if (!project) return
+    if (val === (project.description ?? '')) { clearEdit(projectId); return }
+
+    setUpdating(prev => ({ ...prev, [projectId]: true }))
+    try {
+      const updated = await updateProject(projectId, {
+        name: project.name,
+        description: val,
+        status: project.status,
+        client_name: project.client_name ?? '',
+        client_id: project.client_id ?? '',
+        start_date: project.start_date ?? '',
+        end_date: project.end_date ?? '',
+        budget: project.budget?.toString() ?? '',
+        project_type: project.project_type ?? '',
+        location: project.location ?? '',
+        expected_timeline: project.expected_timeline ?? '',
+        expected_payment_date: project.expected_payment_date ?? '',
+        location_url: project.location_url ?? '',
+      })
+      onUpdate(updated)
+      clearEdit(projectId)
+      toast.success('Notes updated')
+    } catch (err: any) {
+      toast.error(err.message)
+    } finally {
+      setUpdating(prev => ({ ...prev, [projectId]: false }))
+    }
+  }
+
+  async function handleAdvancePaidBlur(projectId: string) {
+    const val = getEdit(projectId, 'advance_paid')
+    if (!val) { clearEdit(projectId); return }
+    const summary = paymentSummaries.find(s => s.project_id === projectId)
+    const currentPaid = summary?.total_paid ?? 0
+    const newPaid = Number(val)
+    if (newPaid === currentPaid) { clearEdit(projectId); return }
+
+    const difference = newPaid - currentPaid
+    if (difference <= 0) {
+      toast.error('To reduce Advance Paid, manage payments from the Payments page.')
+      clearEdit(projectId)
+      return
+    }
+
+    setUpdating(prev => ({ ...prev, [projectId]: true }))
+    try {
+      await createPayment({
+        project_id: projectId,
+        amount: String(difference),
+        payment_date: new Date().toISOString().slice(0, 10),
+        description: 'Advance (Ops View)',
+        method: 'bank_transfer',
+        status: 'completed',
+      })
+      clearEdit(projectId)
+      toast.success('Advance Paid updated')
+      onRefresh()
     } catch (err: any) {
       toast.error(err.message)
     } finally {
@@ -64,7 +236,6 @@ export default function ProjectsOperationsView({
   }, 0)
   const totalBalance = totalAmount - totalPaid
 
-  // Collect client WhatsApp phone numbers
   const clientPhones: Record<string, { phone: string; name: string }> = {}
   for (const p of projects) {
     if (!p.client_id) continue
@@ -82,12 +253,12 @@ export default function ProjectsOperationsView({
             <TableRow>
               <TableHead className="w-[180px]">Project</TableHead>
               <TableHead className="w-[140px]">Client</TableHead>
-              <TableHead className="w-[110px]">WhatsApp</TableHead>
+              <TableHead className="w-[160px]">WhatsApp</TableHead>
               <TableHead className="w-[100px]">Stage</TableHead>
               <TableHead className="w-[100px] text-right">Amount</TableHead>
-              <TableHead className="w-[90px] text-right">Paid</TableHead>
+              <TableHead className="w-[90px] text-right">Advance Paid</TableHead>
               <TableHead className="w-[100px] text-right">Balance</TableHead>
-              <TableHead className="w-[140px]">Timeline</TableHead>
+              <TableHead className="w-[160px]">Timeline</TableHead>
               <TableHead className="min-w-[120px]">Notes</TableHead>
               <TableHead className="w-[70px] text-right" />
             </TableRow>
@@ -95,6 +266,8 @@ export default function ProjectsOperationsView({
           <TableBody>
             {projects.map(p => {
               const summary = paymentSummaries.find(s => s.project_id === p.id)
+              const wpInfo = p.client_id ? clientPhones[p.client_id!] : undefined
+              const isUpdating = updating[p.id]
               return (
                 <TableRow key={p.id} className="group">
                   <TableCell>
@@ -111,17 +284,21 @@ export default function ProjectsOperationsView({
                       <span className="text-xs text-muted-foreground">{p.client_name ?? '-'}</span>
                     )}
                   </TableCell>
-                  <TableCell>
-                    {p.client_id && clientPhones[p.client_id!] ? (
-                      <Button
-                        variant="success"
-                        size="sm"
-                        className="h-6 text-[10px] px-1.5"
-                        onClick={() => onWhatsApp(clientPhones[p.client_id!].phone, clientPhones[p.client_id!].name)}
-                        title={`WhatsApp ${clientPhones[p.client_id!].name}`}
-                      >
-                        {clientPhones[p.client_id!].phone.replace(/\D/g, '').slice(-10)}
-                      </Button>
+                   <TableCell>
+                    {wpInfo ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-foreground font-medium" title={wpInfo.phone}>
+                          {wpInfo.phone.replace(/\D/g, '').slice(-10)}
+                        </span>
+                        <a
+                          href={generateWhatsAppUrl(wpInfo.phone, `Hello, regarding your project.`)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex h-6 items-center rounded bg-green-600 px-2 text-xs font-semibold text-white hover:bg-green-700"
+                        >
+                          WhatsApp
+                        </a>
+                      </div>
                     ) : (
                       <span className="text-xs text-muted-foreground">-</span>
                     )}
@@ -131,7 +308,7 @@ export default function ProjectsOperationsView({
                       value={p.status}
                       onChange={e => handleStageChange(p.id, e.target.value)}
                       className="h-7 text-xs"
-                      disabled={updating[p.id]}
+                      disabled={isUpdating}
                     >
                       {STAGES.map(s => (
                         <option key={s.value} value={s.value}>{s.label}</option>
@@ -139,10 +316,30 @@ export default function ProjectsOperationsView({
                     </Select>
                   </TableCell>
                   <TableCell className="text-right font-mono text-xs">
-                    {p.budget != null ? formatCurrency(Number(p.budget)) : '-'}
+                    {isUpdating ? (
+                      <span className="text-muted-foreground">saving...</span>
+                    ) : (
+                      <Input
+                        type="number"
+                        value={getEdit(p.id, 'budget') || (p.budget ?? '')}
+                        onChange={e => setEdit(p.id, 'budget', e.target.value)}
+                        onFocus={e => { if (!getEdit(p.id, 'budget')) e.target.value = String(p.budget ?? '') }}
+                        onBlur={() => handleAmountBlur(p.id)}
+                        onKeyDown={e => { if (e.key === 'Enter') { (e.target as HTMLInputElement).blur() } }}
+                        className="h-6 w-24 text-right text-xs font-mono px-1"
+                      />
+                    )}
                   </TableCell>
                   <TableCell className="text-right font-mono text-xs">
-                    {summary != null ? formatCurrency(summary.total_paid) : '₹0'}
+                    <Input
+                      type="number"
+                      value={getEdit(p.id, 'advance_paid') || (summary?.total_paid ?? 0)}
+                      onChange={e => setEdit(p.id, 'advance_paid', e.target.value)}
+                      onFocus={e => { if (!getEdit(p.id, 'advance_paid')) e.target.value = String(summary?.total_paid ?? 0) }}
+                      onBlur={() => handleAdvancePaidBlur(p.id)}
+                      onKeyDown={e => { if (e.key === 'Enter') { (e.target as HTMLInputElement).blur() } }}
+                      className="h-6 w-20 text-right text-xs font-mono px-1"
+                    />
                   </TableCell>
                   <TableCell className="text-right font-mono text-xs font-semibold">
                     {summary != null
@@ -150,16 +347,35 @@ export default function ProjectsOperationsView({
                       : p.budget != null ? formatCurrency(Number(p.budget)) : '-'}
                   </TableCell>
                   <TableCell className="text-xs whitespace-nowrap">
-                    {p.start_date || p.end_date ? (
-                      <span className="text-muted-foreground">
-                        {p.start_date ?? '…'} → {p.end_date ?? '…'}
-                      </span>
-                    ) : '-'}
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="date"
+                        value={getEdit(p.id, 'start_date') || (p.start_date ?? '')}
+                        onChange={e => setEdit(p.id, 'start_date', e.target.value)}
+                        onBlur={() => handleTimelineBlur(p.id, 'start_date')}
+                        className="h-6 w-[88px] text-[10px] px-1"
+                      />
+                      <span className="text-muted-foreground">→</span>
+                      <Input
+                        type="date"
+                        value={getEdit(p.id, 'end_date') || (p.end_date ?? '')}
+                        onChange={e => setEdit(p.id, 'end_date', e.target.value)}
+                        onBlur={() => handleTimelineBlur(p.id, 'end_date')}
+                        className="h-6 w-[88px] text-[10px] px-1"
+                      />
+                    </div>
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground max-w-[120px]">
-                    <span className="truncate block" title={p.description ?? ''}>
-                      {p.description ? p.description.length > 50 ? p.description.slice(0, 50) + '…' : p.description : '-'}
-                    </span>
+                  <TableCell className="text-xs max-w-[120px]">
+                    <Input
+                      type="text"
+                      value={getEdit(p.id, 'description') || (p.description ?? '')}
+                      onChange={e => setEdit(p.id, 'description', e.target.value)}
+                      onFocus={e => { if (!getEdit(p.id, 'description')) e.target.value = p.description ?? '' }}
+                      onBlur={() => handleNotesBlur(p.id)}
+                      onKeyDown={e => { if (e.key === 'Enter') { (e.target as HTMLInputElement).blur() } }}
+                      placeholder="-"
+                      className="h-6 text-xs px-1"
+                    />
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-0.5">
@@ -187,9 +403,8 @@ export default function ProjectsOperationsView({
               )
             })}
           </TableBody>
-          {/* Summary footer row */}
           <tfoot>
-            <TableRow className="border-t-2 border-gray-300 bg-gray-50 font-semibold">
+            <TableRow className="border-t-2 border-border bg-muted font-semibold">
               <TableCell colSpan={4} className="text-xs font-semibold">
                 {projects.length} project{projects.length !== 1 ? 's' : ''}
               </TableCell>
@@ -257,14 +472,14 @@ export default function ProjectsOperationsView({
                       <Button variant="link" size="sm" className="h-6 text-xs px-1 text-destructive" onClick={() => onDelete(p)}>Del</Button>
                     </div>
                     {wp && (
-                      <Button
-                        variant="success"
-                        size="sm"
-                        className="h-6 text-[10px]"
-                        onClick={() => onWhatsApp(wp, p.client_name ?? p.name)}
+                      <a
+                        href={generateWhatsAppUrl(wp, `Hello, regarding your project.`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-7 items-center rounded bg-green-600 px-2 text-xs font-semibold text-white hover:bg-green-700"
                       >
                         WhatsApp
-                      </Button>
+                      </a>
                     )}
                   </div>
                 </div>
@@ -272,8 +487,7 @@ export default function ProjectsOperationsView({
             </Card>
           )
         })}
-        {/* Mobile summary */}
-        <Card className="border-2 border-gray-300">
+        <Card className="border-2 border-border">
           <CardContent className="p-3">
             <div className="flex items-center justify-between text-xs font-semibold">
               <span>{projects.length} project{projects.length !== 1 ? 's' : ''}</span>
