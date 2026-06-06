@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import type { ProposalWithRelations } from '../../types'
 import { TEMPLATE_LABELS } from '../../types'
+import { Button } from '../ui/Button'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 
@@ -62,12 +63,12 @@ export default function ProposalPreview({ proposal, onClose }: Props) {
           {TEMPLATE_LABELS[proposal.template]} — {proposal.proposal_number}
         </h2>
         <div className="flex gap-2">
-          <button onClick={handleDownload} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
+          <Button onClick={handleDownload}>
             Download PDF
-          </button>
-          <button onClick={onClose} className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">
+          </Button>
+          <Button variant="outline" onClick={onClose}>
             Close
-          </button>
+          </Button>
         </div>
       </div>
 

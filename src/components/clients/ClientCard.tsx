@@ -21,12 +21,12 @@ export default function ClientCard({ client, stats, onEdit, onDelete }: Props) {
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-base font-semibold">{client.name}</h3>
           {client.company && (
-            <p className="mt-0.5 text-sm text-gray-500">{client.company}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{client.company}</p>
           )}
         </div>
       </div>
 
-      <div className="mt-2 space-y-1 text-sm text-gray-600">
+      <div className="mt-2 space-y-1 text-sm text-muted-foreground">
         {client.email && <p>✉ {client.email}</p>}
         {client.phone && <p>📞 {client.phone}</p>}
         {client.whatsapp && <p>💬 {client.whatsapp}</p>}
@@ -42,15 +42,15 @@ export default function ClientCard({ client, stats, onEdit, onDelete }: Props) {
           </span>
         )}
         {lastUpdated && (
-          <span className="text-gray-400">Updated {lastUpdated}</span>
+          <span className="text-muted-foreground">Updated {lastUpdated}</span>
         )}
       </div>
 
       {client.notes && (
-        <p className="mt-2 line-clamp-2 text-sm text-gray-500">{client.notes}</p>
+        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{client.notes}</p>
       )}
 
-      <div className="mt-3 flex gap-2 border-t border-gray-100 pt-3">
+      <div className="mt-3 flex gap-2 border-t border-border pt-3">
         <Button type="button" variant="link" size="sm" onClick={() => onEdit(client)}>Edit</Button>
         <Button type="button" variant="link" size="sm" className="text-destructive" onClick={() => onDelete(client)}>Delete</Button>
       </div>

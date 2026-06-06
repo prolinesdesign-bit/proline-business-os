@@ -53,7 +53,7 @@ export default function TargetForm({ target, onSave, onCancel }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+      <form onSubmit={handleSubmit} className="w-full max-w-lg rounded-xl bg-card p-6 shadow-xl">
         <h2 className="mb-4 text-lg font-bold">{target ? 'Edit Target' : 'New Target'}</h2>
 
         <div className="space-y-3">

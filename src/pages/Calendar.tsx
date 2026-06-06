@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getCalendarEvents } from '../lib/api/calendar'
 import type { CalendarEvent, CalendarDay } from '../types'
 import AppLayout from '../components/layout/AppLayout'
 import { Button } from '../components/ui/Button'
-import { Card } from '../components/ui/Card'
+import { Card, CardContent } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { Skeleton } from '../components/ui/Skeleton'
 
@@ -73,11 +73,22 @@ function buildCalendar(year: number, month: number, events: CalendarEvent[]): Ca
 }
 
 export default function Calendar() {
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [year, setYear] = useState(new Date().getFullYear())
   const [month, setMonth] = useState(new Date().getMonth())
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
+
+  const groupedEvents = useMemo(() => {
+    const groups: Record<string, CalendarEvent[]> = {}
+    for (const e of events) {
+      if (!groups[e.date]) groups[e.date] = []
+      groups[e.date].push(e)
+    }
+    const sorted = Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
+    return sorted
+  }, [events])
 
   useEffect(() => {
     getCalendarEvents()
@@ -118,6 +129,20 @@ export default function Calendar() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Calendar</h1>
           <div className="flex items-center gap-2">
+            <div className="flex overflow-hidden rounded-lg border border-gray-200 text-xs mr-2">
+              <button
+                onClick={() => setViewMode('calendar')}
+                className={`px-3 py-1.5 transition-colors ${viewMode === 'calendar' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+              >
+                Calendar
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-3 py-1.5 transition-colors ${viewMode === 'list' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+              >
+                List
+              </button>
+            </div>
             <Button variant="outline" size="sm" onClick={prevMonth}>&larr;</Button>
             <Button variant="outline" size="sm" onClick={goToday}>Today</Button>
             <Button variant="outline" size="sm" onClick={nextMonth}>&rarr;</Button>
@@ -130,6 +155,44 @@ export default function Calendar() {
 
         {loading ? (
           <Skeleton className="h-96 w-full" />
+        ) : viewMode === 'list' ? (
+          <div className="space-y-2">
+            {groupedEvents.length === 0 ? (
+              <p className="text-center text-muted-foreground py-12">No events this month.</p>
+            ) : (
+              groupedEvents.map(([date, evts]) => (
+                <Card key={date}>
+                  <CardContent className="p-3">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">
+                      {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                    </p>
+                    <div className="space-y-1.5">
+                      {evts.map(e => (
+                        <div key={`${e.id}-${e.type}`} className={`flex items-center justify-between rounded-lg px-3 py-2 ${e.type === 'site_visit' ? 'bg-purple-50' : isOverdue(e) ? 'bg-red-50' : 'bg-gray-50'}`}>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_COLORS[e.status] ?? 'bg-gray-400'}`} />
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate">{e.name}</p>
+                              {e.client_name && <p className="text-xs text-muted-foreground">{e.client_name}</p>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0 ml-2">
+                            <Badge variant={
+                              e.type === 'site_visit' ? 'purple' :
+                              e.type === 'start' ? 'default' :
+                              isOverdue(e) ? 'destructive' : 'secondary'
+                            } className="text-[10px] px-1.5 py-0">
+                              {e.type === 'site_visit' ? 'Visit' : e.type === 'start' ? 'Start' : 'Due'}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         ) : (
           <>
             <Card className="overflow-hidden">

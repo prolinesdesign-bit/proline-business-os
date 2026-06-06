@@ -28,7 +28,7 @@ export default function WhatsAppModal({ phone, clientName, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+      <div className="w-full max-w-lg rounded-xl bg-card p-6 shadow-xl">
         <h2 className="text-lg font-bold mb-1">WhatsApp to {clientName}</h2>
         <p className="text-sm text-gray-500 mb-4">{phone}</p>
 

@@ -70,6 +70,8 @@ export type PaymentFormData = {
   amount: string
   payment_date: string
   description: string
+  method: string
+  status: string
 }
 
 export interface ProjectPaymentSummary {

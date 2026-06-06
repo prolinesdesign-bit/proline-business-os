@@ -20,7 +20,7 @@ export default function ProjectCard({ project, docCount = 0, siteVisitPhotoCount
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-base font-semibold">{project.name}</h3>
           {project.client_name && (
-            <p className="mt-0.5 text-sm text-gray-500">{project.client_name}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{project.client_name}</p>
           )}
         </div>
         <Badge variant={
@@ -33,7 +33,7 @@ export default function ProjectCard({ project, docCount = 0, siteVisitPhotoCount
         </Badge>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
         {project.budget != null && (
           <span>₹{Number(project.budget).toLocaleString()}</span>
         )}
@@ -44,10 +44,10 @@ export default function ProjectCard({ project, docCount = 0, siteVisitPhotoCount
       </div>
 
       {project.description && (
-        <p className="mt-2 line-clamp-2 text-sm text-gray-500">{project.description}</p>
+        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{project.description}</p>
       )}
 
-      <div className="mt-3 flex gap-2 border-t border-gray-100 pt-3">
+      <div className="mt-3 flex gap-2 border-t border-border pt-3">
         <Button
           type="button"
           variant="link"

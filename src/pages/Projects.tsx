@@ -1,21 +1,128 @@
 import { useEffect, useState, useCallback } from 'react'
-import type { Project, ProjectFormData, SiteVisit } from '../types'
+import { Link } from 'react-router-dom'
+import type { Project, ProjectFormData, SiteVisit, ProjectPaymentSummary, CalendarEvent, CalendarDay } from '../types'
 import { getProjects, createProject, updateProject, deleteProject } from '../lib/api/projects'
 import { getDocumentCounts } from '../lib/api/documents'
+import { getProjectSummaries } from '../lib/api/payments'
 import { supabase } from '../lib/supabase'
 import ProjectCard from '../components/projects/ProjectCard'
 import ProjectForm from '../components/projects/ProjectForm'
+import ProjectsOperationsView from '../components/projects/ProjectsOperationsView'
 import WhatsAppModal from '../components/WhatsAppModal'
 import AppLayout from '../components/layout/AppLayout'
 import { Button } from '../components/ui/Button'
+import { Badge } from '../components/ui/Badge'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Input } from '../components/ui/Input'
 import { toast } from 'sonner'
 import { CardSkeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
 
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+function getWeekBounds(now: Date) {
+  const day = now.getDay()
+  const diff = (day + 6) % 7
+  const monday = new Date(now)
+  monday.setDate(now.getDate() - diff)
+  monday.setHours(0, 0, 0, 0)
+  const sunday = new Date(monday)
+  sunday.setDate(monday.getDate() + 6)
+  sunday.setHours(23, 59, 59, 999)
+  return { monday, sunday }
+}
+
+function buildCalendar(year: number, month: number, events: CalendarEvent[]): CalendarDay[] {
+  const firstDay = new Date(year, month, 1)
+  const lastDay = new Date(year, month + 1, 0)
+  const startPad = firstDay.getDay()
+  const totalDays = lastDay.getDate()
+  const today = new Date()
+  const todayStr = today.toDateString()
+  const { monday, sunday } = getWeekBounds(today)
+
+  const days: CalendarDay[] = []
+
+  for (let i = 0; i < startPad; i++) {
+    const d = new Date(year, month, i - startPad + 1)
+    days.push({ date: d, day: d.getDate(), isCurrentMonth: false, isToday: false, isThisWeek: false, events: [] })
+  }
+
+  for (let i = 1; i <= totalDays; i++) {
+    const d = new Date(year, month, i)
+    const isToday = d.toDateString() === todayStr
+    const isThisWeek = d >= monday && d <= sunday
+    const dateStr = d.toISOString().slice(0, 10)
+    const dayEvents = events.filter(e => e.date === dateStr)
+    days.push({ date: d, day: i, isCurrentMonth: true, isToday, isThisWeek, events: dayEvents })
+  }
+
+  const remaining = 42 - days.length
+  for (let i = 1; i <= remaining; i++) {
+    const d = new Date(year, month + 1, i)
+    days.push({ date: d, day: d.getDate(), isCurrentMonth: false, isToday: false, isThisWeek: false, events: [] })
+  }
+
+  return days
+}
+
+type Period = 'current_month' | 'last_month' | 'last_6_months' | 'this_year' | 'custom'
+
+function getPeriodRange(period: Period, customStart?: string, customEnd?: string): { start: string; end: string } | null {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = now.getMonth()
+
+  switch (period) {
+    case 'current_month': {
+      const start = new Date(y, m, 1)
+      const end = new Date(y, m + 1, 0)
+      return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) }
+    }
+    case 'last_month': {
+      const start = new Date(y, m - 1, 1)
+      const end = new Date(y, m, 0)
+      return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) }
+    }
+    case 'last_6_months': {
+      const start = new Date(y, m - 5, 1)
+      const end = new Date(y, m + 1, 0)
+      return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) }
+    }
+    case 'this_year': {
+      const start = new Date(y, 0, 1)
+      const end = new Date(y, 11, 31)
+      return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) }
+    }
+    case 'custom': {
+      if (!customStart || !customEnd) return null
+      return { start: customStart, end: customEnd }
+    }
+  }
+}
+
+function isProjectInPeriod(p: Project, start: string, end: string): boolean {
+  if (p.start_date && p.start_date >= start && p.start_date <= end) return true
+  if (p.end_date && p.end_date >= start && p.end_date <= end) return true
+  if (p.start_date && p.start_date <= end && (!p.end_date || p.end_date >= start)) return true
+  return false
+}
+
+const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+  { value: 'current_month', label: 'Current Month' },
+  { value: 'last_month', label: 'Last Month' },
+  { value: 'last_6_months', label: 'Last 6 Months' },
+  { value: 'this_year', label: 'This Year' },
+  { value: 'custom', label: 'Custom' },
+]
+
 export default function Projects() {
+  const [viewMode, setViewMode] = useState<'card' | 'operations' | 'calendar'>('operations')
+  const [calYear, setCalYear] = useState(new Date().getFullYear())
+  const [calMonth, setCalMonth] = useState(new Date().getMonth())
+  const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
+  const [paymentSummaries, setPaymentSummaries] = useState<ProjectPaymentSummary[]>([])
   const [docCounts, setDocCounts] = useState<Record<string, number>>({})
   const [svPhotoCounts, setSvPhotoCounts] = useState<Record<string, number>>({})
   const [clientWhatsapp, setClientWhatsapp] = useState<Record<string, string>>({})
@@ -25,17 +132,64 @@ export default function Projects() {
   const [editing, setEditing] = useState<Project | null>(null)
   const [deleting, setDeleting] = useState<Project | null>(null)
   const [whatsappTarget, setWhatsappTarget] = useState<{ phone: string; name: string } | null>(null)
+  const [period, setPeriod] = useState<Period>('current_month')
+  const [customStart, setCustomStart] = useState('')
+  const [customEnd, setCustomEnd] = useState('')
+
+  const periodRange = getPeriodRange(period, customStart, customEnd)
+  const filteredProjects = periodRange
+    ? projects.filter(p => isProjectInPeriod(p, periodRange.start, periodRange.end))
+    : projects
+
+  const calendarEvents: CalendarEvent[] = projects.flatMap(p => {
+    const evts: CalendarEvent[] = []
+    if (p.start_date) {
+      evts.push({ id: p.id, name: p.name, client_name: p.client_name, status: p.status, type: 'start', date: p.start_date })
+    }
+    if (p.end_date) {
+      evts.push({ id: p.id, name: p.name, client_name: p.client_name, status: p.status, type: 'due', date: p.end_date })
+    }
+    return evts
+  }).sort((a, b) => a.date.localeCompare(b.date))
+
+  const calendarDays = buildCalendar(calYear, calMonth, calendarEvents)
+  const calendarWeeks: CalendarDay[][] = []
+  for (let i = 0; i < calendarDays.length; i += 7) {
+    calendarWeeks.push(calendarDays.slice(i, i + 7))
+  }
+
+  function prevMonth() {
+    if (calMonth === 0) { setCalYear(y => y - 1); setCalMonth(11) }
+    else setCalMonth(m => m - 1)
+  }
+
+  function nextMonth() {
+    if (calMonth === 11) { setCalYear(y => y + 1); setCalMonth(0) }
+    else setCalMonth(m => m + 1)
+  }
+
+  function goToday() {
+    const now = new Date()
+    setCalYear(now.getFullYear())
+    setCalMonth(now.getMonth())
+  }
+
+  function isOverdue(event: CalendarEvent) {
+    return event.type === 'due' && event.status !== 'completed' && new Date(event.date) < new Date()
+  }
 
   const fetch = useCallback(async () => {
     setLoading(true)
     try {
-      const [data, counts, svRes] = await Promise.all([
+      const [data, counts, svRes, summaries] = await Promise.all([
         getProjects(search),
         getDocumentCounts(),
         supabase.from('site_visits').select('project_id, photo_urls'),
+        getProjectSummaries(),
       ])
       setProjects(data)
       setDocCounts(counts)
+      setPaymentSummaries(summaries)
 
       const photoCounts: Record<string, number> = {}
       for (const sv of (svRes.data ?? []) as SiteVisit[]) {
@@ -99,12 +253,45 @@ export default function Projects() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-4xl px-4 py-6">
+      <div className={`mx-auto px-4 py-6 ${viewMode === 'operations' ? 'max-w-7xl' : 'max-w-4xl'}`}>
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Projects</h1>
-        <Button onClick={() => setShowForm(true)}>
-          + Add Project
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex overflow-hidden rounded-lg border border-gray-200 text-xs">
+            <button
+              onClick={() => setViewMode('card')}
+              className={`px-3 py-1.5 transition-colors ${viewMode === 'card' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+            >
+              Cards
+            </button>
+            <button
+              onClick={() => setViewMode('operations')}
+              className={`px-3 py-1.5 transition-colors ${viewMode === 'operations' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+            >
+              Ops
+            </button>
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`px-3 py-1.5 transition-colors ${viewMode === 'calendar' ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+            >
+              Calendar
+            </button>
+          </div>
+          {viewMode === 'calendar' ? (
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" onClick={prevMonth}>&larr;</Button>
+              <span className="text-sm font-medium min-w-[140px] text-center">
+                {new Date(calYear, calMonth).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+              </span>
+              <Button variant="outline" size="sm" onClick={nextMonth}>&rarr;</Button>
+              <Button variant="outline" size="sm" onClick={goToday}>Today</Button>
+            </div>
+          ) : (
+            <Button onClick={() => setShowForm(true)}>
+              + Add Project
+            </Button>
+          )}
+        </div>
       </div>
 
       <Input
@@ -115,16 +302,127 @@ export default function Projects() {
         className="mt-4 w-full"
       />
 
-      {loading ? (
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <CardSkeleton /><CardSkeleton /><CardSkeleton /><CardSkeleton />
+      {/* Period filter — shown in all modes */}
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="flex overflow-hidden rounded-lg border border-gray-200 text-xs">
+          {PERIOD_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setPeriod(opt.value)}
+              className={`px-3 py-1.5 transition-colors ${period === opt.value ? 'bg-primary text-white' : 'bg-white text-muted-foreground hover:bg-gray-50'}`}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
+        {period === 'custom' && (
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              value={customStart}
+              onChange={e => setCustomStart(e.target.value)}
+              className="h-7 w-36 text-xs"
+              placeholder="Start"
+            />
+            <span className="text-xs text-muted-foreground">→</span>
+            <Input
+              type="date"
+              value={customEnd}
+              onChange={e => setCustomEnd(e.target.value)}
+              className="h-7 w-36 text-xs"
+              placeholder="End"
+            />
+          </div>
+        )}
+        {periodRange && (
+          <span className="text-xs text-muted-foreground">
+            {periodRange.start} — {periodRange.end}
+          </span>
+        )}
+      </div>
+
+      {loading ? (
+        viewMode === 'operations' ? (
+          <div className="mt-4 space-y-3">
+            <CardSkeleton /><CardSkeleton /><CardSkeleton />
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <CardSkeleton /><CardSkeleton /><CardSkeleton /><CardSkeleton />
+          </div>
+        )
       ) : projects.length === 0 ? (
         <div className="mt-8">
           {search ? (
             <EmptyState title="No results" description="No projects match your search." />
           ) : (
             <EmptyState title="No projects yet" description="Click + Add Project to create your first project." />
+          )}
+        </div>
+      ) : viewMode === 'calendar' ? (
+        <div className="mt-4">
+          <Card className="overflow-hidden">
+            <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
+              {DAYS.map(d => (
+                <div key={d} className="px-2 py-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wide">{d}</div>
+              ))}
+            </div>
+            {calendarWeeks.map((week, wi) => (
+              <div key={wi} className="grid grid-cols-7 overflow-hidden border-b border-gray-100 last:border-0">
+                {week.map((day, di) => (
+                  <button
+                    key={di}
+                    onClick={() => day.events.length > 0 && setSelectedDay(day)}
+                    className={`min-h-[60px] p-1 sm:min-h-[80px] sm:p-1.5 border-r border-gray-100 last:border-0 text-left transition-colors hover:bg-gray-50 ${
+                      !day.isCurrentMonth ? 'bg-gray-50/50' : ''
+                    } ${day.isThisWeek ? 'ring-1 ring-inset ring-blue-200' : ''}`}
+                  >
+                    <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium sm:h-6 sm:w-6 sm:text-xs ${
+                      day.isToday ? 'bg-blue-600 text-white' : day.isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                    }`}>
+                      {day.day}
+                    </span>
+                    <div className="mt-1 space-y-0.5">
+                      {day.events.slice(0, 3).map(e => (
+                        <div
+                          key={`${e.id}-${e.type}`}
+                          className={`flex items-center gap-1 rounded px-1 py-0.5 text-[10px] font-medium leading-tight ${
+                            isOverdue(e) ? 'bg-red-100 text-red-700' : e.type === 'start' ? 'bg-blue-50 text-blue-700' : 'bg-yellow-50 text-yellow-700'
+                          }`}
+                        >
+                          <span className="truncate">{e.name}</span>
+                          {e.type === 'start' && <span className="shrink-0 opacity-60">S</span>}
+                          {e.type === 'due' && <span className="shrink-0 opacity-60">D</span>}
+                        </div>
+                      ))}
+                      {day.events.length > 3 && (
+                        <p className="text-[10px] text-gray-400 pl-1">+{day.events.length - 3} more</p>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </Card>
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500" /> Start</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-500" /> Due</span>
+            <span className="flex items-center gap-1"><Badge variant="destructive" className="rounded-sm px-1.5 py-0.5">Overdue</Badge></span>
+          </div>
+        </div>
+      ) : viewMode === 'operations' ? (
+        <div className="mt-4">
+          {filteredProjects.length === 0 ? (
+            <EmptyState title="No projects in this period" description="Try a different date range." />
+          ) : (
+            <ProjectsOperationsView
+              projects={filteredProjects}
+              paymentSummaries={paymentSummaries}
+              clientWhatsapp={clientWhatsapp}
+              onEdit={(p) => { setEditing(p); setShowForm(true) }}
+              onDelete={(p) => setDeleting(p)}
+              onWhatsApp={(phone, name) => setWhatsappTarget({ phone, name })}
+            />
           )}
         </div>
       ) : (
@@ -189,6 +487,48 @@ export default function Projects() {
           clientName={whatsappTarget.name}
           onClose={() => setWhatsappTarget(null)}
         />
+      )}
+
+      {selectedDay && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setSelectedDay(null)}>
+          <div className="w-full max-w-lg rounded-xl bg-card p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold">
+                {selectedDay.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </h2>
+              <button onClick={() => setSelectedDay(null)} className="text-muted-foreground hover:text-foreground">&times;</button>
+            </div>
+            {selectedDay.events.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No events on this day.</p>
+            ) : (
+              <div className="space-y-2">
+                {selectedDay.events.map(e => (
+                  <div key={`${e.id}-${e.type}`} className="flex items-center justify-between rounded-lg bg-muted px-4 py-3">
+                    <div>
+                      <p className="text-sm font-medium">{e.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {e.client_name ?? 'No client'} — {e.type === 'start' ? 'Start' : 'Due'}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={
+                        e.status === 'active' ? 'success' :
+                        e.status === 'completed' ? 'default' :
+                        e.status === 'on_hold' ? 'warning' :
+                        'destructive'
+                      }>
+                        {e.status.replace('_', ' ')}
+                      </Badge>
+                      <Button variant="link" size="sm" asChild>
+                        <Link to={`/project/${e.id}`}>View</Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
     </AppLayout>

@@ -8,7 +8,6 @@ import {
 import AppLayout from '../components/layout/AppLayout'
 import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'
-import { Badge } from '../components/ui/Badge'
 import { KPISkeleton } from '../components/ui/Skeleton'
 
 export default function Dashboard() {
@@ -134,10 +133,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Widgets */}
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          {/* Target Progress */}
-          <Card className="lg:col-span-3">
+        {/* Widgets — Executive Overview */}
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          {/* Monthly Target Progress */}
+          <Card className="lg:col-span-2">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold">Monthly Target Progress</h3>
@@ -198,14 +197,11 @@ export default function Dashboard() {
               {data.overdueProjects.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No overdue projects.</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
                   {data.overdueProjects.map(p => (
                     <div key={p.id} className="flex items-center justify-between rounded-lg bg-red-50 px-3 py-2">
-                      <div>
-                        <p className="text-sm font-medium">{p.name}</p>
-                        <p className="text-xs text-destructive">{p.end_date ? daysUntil(p.end_date) : ''}</p>
-                      </div>
-                      <p className="text-xs text-destructive">{formatDate(p.end_date!)}</p>
+                      <Link to={`/project/${p.id}`} className="text-sm font-medium text-blue-600 hover:underline">{p.name}</Link>
+                      <p className="text-xs text-destructive">{p.end_date ? daysUntil(p.end_date) : ''}</p>
                     </div>
                   ))}
                 </div>
@@ -213,7 +209,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Upcoming & Due This Week */}
+          {/* Upcoming Due Dates */}
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
@@ -225,13 +221,10 @@ export default function Dashboard() {
               {data.upcomingDueDates.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No upcoming due dates.</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
                   {data.upcomingDueDates.slice(0, 5).map(p => (
                     <div key={p.id} className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-                      <div>
-                        <p className="text-sm font-medium">{p.name}</p>
-                        <p className="text-xs text-muted-foreground">{p.client_name ?? 'No client'}</p>
-                      </div>
+                      <Link to={`/project/${p.id}`} className="text-sm font-medium text-blue-600 hover:underline">{p.name}</Link>
                       <div className="text-right">
                         <p className="text-sm font-medium">{formatDate(p.end_date!)}</p>
                         <p className={`text-xs font-medium ${
@@ -241,170 +234,6 @@ export default function Dashboard() {
                         }`}>
                           {daysUntil(p.end_date!)}
                         </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Site Visits */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-purple-700">Site Visits This Month</h3>
-                <Button variant="link" size="sm" asChild>
-                  <Link to="/sitevisits">View all</Link>
-                </Button>
-              </div>
-              <p className={`text-3xl font-bold ${data.siteVisitsThisMonth > 0 ? 'text-purple-600' : 'text-gray-400'}`}>
-                {data.siteVisitsThisMonth}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-purple-700">Upcoming Site Visits</h3>
-                <Button variant="link" size="sm" asChild>
-                  <Link to="/sitevisits">View all</Link>
-                </Button>
-              </div>
-              {data.upcomingSiteVisits.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No upcoming site visits.</p>
-              ) : (
-                <div className="space-y-2 max-h-[180px] overflow-y-auto">
-                  {data.upcomingSiteVisits.map(sv => (
-                    <div key={sv.id} className="rounded-lg bg-purple-50 px-3 py-2 text-sm">
-                      <p className="font-medium text-purple-800">{sv.location || 'Unknown location'}</p>
-                      <p className="text-xs text-purple-600">{formatDate(sv.visit_date)} &middot; {sv.site_status?.replace('_', ' ')}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Follow-ups */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-orange-700">Follow-ups Due Today</h3>
-                <Button variant="link" size="sm" asChild>
-                  <Link to="/followups">View all</Link>
-                </Button>
-              </div>
-              <p className={`text-3xl font-bold ${data.followUpsDueToday > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
-                {data.followUpsDueToday}
-              </p>
-              {data.followUpsDueToday > 0 && (
-                <p className="text-xs text-orange-600 mt-1">Follow-ups need attention today</p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-red-700">Overdue Follow-ups</h3>
-                <Button variant="link" size="sm" asChild>
-                  <Link to="/followups">View all</Link>
-                </Button>
-              </div>
-              {data.overdueFollowUps.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No overdue follow-ups.</p>
-              ) : (
-                <div className="space-y-2 max-h-[180px] overflow-y-auto">
-                  {data.overdueFollowUps.map(f => (
-                    <div key={f.id} className="rounded-lg bg-red-50 px-3 py-2 text-sm">
-                      <p className="font-medium text-red-800">Client #{f.client_id.slice(0, 8)}</p>
-                      <p className="text-xs text-destructive">
-                        Due {formatDate(f.next_follow_up_date!)} &middot; {f.status?.replace('_', ' ')}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold">Upcoming Follow-ups</h3>
-                <Button variant="link" size="sm" asChild>
-                  <Link to="/followups">View all</Link>
-                </Button>
-              </div>
-              {data.upcomingFollowUps.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No upcoming follow-ups.</p>
-              ) : (
-                <div className="space-y-2 max-h-[180px] overflow-y-auto">
-                  {data.upcomingFollowUps.map(f => (
-                    <div key={f.id} className="rounded-lg bg-gray-50 px-3 py-2 text-sm">
-                      <p className="font-medium">Client #{f.client_id.slice(0, 8)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(f.next_follow_up_date!)} &middot; {f.status?.replace('_', ' ')}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recent Payments */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold">Recent Payments</h3>
-                <Button variant="link" size="sm" asChild>
-                  <Link to="/payments">View all</Link>
-                </Button>
-              </div>
-              {data.recentPayments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No payments yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {data.recentPayments.map(p => (
-                    <div key={p.id} className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-                      <div>
-                        <p className="text-sm font-medium">₹{Number(p.amount).toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(p.payment_date)}</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate max-w-[120px]">{p.description ?? '—'}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recent Expenses */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold">Recent Expenses</h3>
-                <Button variant="link" size="sm" asChild>
-                  <Link to="/expenses">View all</Link>
-                </Button>
-              </div>
-              {data.recentExpenses.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No expenses yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {data.recentExpenses.map(e => (
-                    <div key={e.id} className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
-                      <div>
-                        <p className="text-sm font-medium">₹{Number(e.amount).toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(e.expense_date)}</p>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant="secondary">
-                          {e.category}
-                        </Badge>
                       </div>
                     </div>
                   ))}

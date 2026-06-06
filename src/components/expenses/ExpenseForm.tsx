@@ -59,7 +59,7 @@ export default function ExpenseForm({ expense, projects, onSave, onCancel }: Pro
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl"
+        className="w-full max-w-lg rounded-xl bg-card p-6 shadow-xl"
       >
         <h2 className="mb-4 text-lg font-bold">{expense ? 'Edit Expense' : 'New Expense'}</h2>
 

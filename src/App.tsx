@@ -17,6 +17,8 @@ import Analytics from './pages/Analytics'
 import SiteVisits from './pages/SiteVisits'
 import Proposals from './pages/Proposals'
 import BackupRestore from './pages/BackupRestore'
+import ProjectPage from './pages/ProjectPage'
+import ClientPage from './pages/ClientPage'
 
 export default function App() {
   return (
@@ -141,6 +143,22 @@ export default function App() {
         element={
           <ProtectedRoute>
             <BackupRestore />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/project/:id"
+        element={
+          <ProtectedRoute>
+            <ProjectPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/client/:id"
+        element={
+          <ProtectedRoute>
+            <ClientPage />
           </ProtectedRoute>
         }
       />

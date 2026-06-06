@@ -82,7 +82,7 @@ export default function ProposalForm({ proposal, selectedClient, selectedProject
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl">
+      <form onSubmit={handleSubmit} className="w-full max-w-2xl rounded-xl bg-card p-6 shadow-xl">
         <h2 className="mb-4 text-lg font-bold">
           {proposal ? `Edit ${TEMPLATE_LABELS[proposal.template]}` : 'New Proposal'}
         </h2>

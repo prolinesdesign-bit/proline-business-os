@@ -102,6 +102,9 @@ export async function createPayment(data: PaymentFormData): Promise<Payment> {
       amount: Number(data.amount),
       payment_date: data.payment_date,
       description: data.description || null,
+      method: data.method || 'bank_transfer',
+      status: data.status || 'completed',
+      currency: 'INR',
     })
     .select()
     .single()
@@ -124,6 +127,9 @@ export async function updatePayment(id: string, data: PaymentFormData): Promise<
       amount: Number(data.amount),
       payment_date: data.payment_date,
       description: data.description || null,
+      method: data.method || 'bank_transfer',
+      status: data.status || 'completed',
+      currency: 'INR',
     })
     .eq('id', id)
     .select()
