@@ -34,6 +34,7 @@ export async function createProject(data: ProjectFormData): Promise<Project> {
       budget: data.budget ? Number(data.budget) : null,
       location: data.location || null,
       location_url: data.location_url || null,
+      revision_count: data.revision_count ? Number(data.revision_count) : 0,
     })
     .select()
     .single()
@@ -54,6 +55,7 @@ export async function updateProject(id: string, data: ProjectFormData): Promise<
       start_date: data.start_date || null,
       end_date: data.end_date || null,
       budget: data.budget ? Number(data.budget) : null,
+      revision_count: data.revision_count ? Number(data.revision_count) : 0,
     })
     .eq('id', id)
     .select()

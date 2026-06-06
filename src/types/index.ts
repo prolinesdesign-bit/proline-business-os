@@ -16,6 +16,7 @@ export interface Project {
   location_url: string | null
   expected_timeline: string | null
   expected_payment_date: string | null
+  revision_count: number | null
 }
 
 export type ProjectFormData = {
@@ -32,6 +33,7 @@ export type ProjectFormData = {
   location_url: string
   expected_timeline: string
   expected_payment_date: string
+  revision_count: string
 }
 
 export interface Client {

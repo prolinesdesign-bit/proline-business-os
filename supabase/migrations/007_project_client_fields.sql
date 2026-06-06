@@ -19,6 +19,9 @@ do $$ begin
   if not exists (select 1 from information_schema.columns where table_name = 'projects' and column_name = 'location_url') then
     alter table projects add column location_url text;
   end if;
+  if not exists (select 1 from information_schema.columns where table_name = 'projects' and column_name = 'revision_count') then
+    alter table projects add column revision_count integer not null default 0;
+  end if;
 end $$;
 
 do $$ begin

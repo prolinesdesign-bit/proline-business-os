@@ -31,6 +31,7 @@ const emptyForm: ProjectFormData = {
   location_url: '',
   expected_timeline: '',
   expected_payment_date: '',
+  revision_count: '0',
 }
 
 const emptyClientForm: ClientFormData = {
@@ -68,6 +69,7 @@ export default function ProjectForm({ project, prefillClientId, onSuccess, onSav
           location_url: project.location_url ?? '',
           expected_timeline: project.expected_timeline ?? '',
           expected_payment_date: project.expected_payment_date ?? '',
+          revision_count: (project.revision_count ?? 0).toString(),
         }
       : { ...emptyForm, client_id: prefillClientId ?? '' },
   )
