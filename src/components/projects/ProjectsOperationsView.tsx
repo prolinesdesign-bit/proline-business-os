@@ -97,7 +97,6 @@ export default function ProjectsOperationsView({
         location_url: overrides.location_url ?? project.location_url ?? '',
         expected_timeline: overrides.expected_timeline ?? project.expected_timeline ?? '',
         expected_payment_date: overrides.expected_payment_date ?? project.expected_payment_date ?? '',
-        revision_count: overrides.revision_count ?? (project.revision_count ?? 0).toString(),
       })
       onUpdate(updated)
       clearEdit(projectId)
@@ -122,6 +121,19 @@ export default function ProjectsOperationsView({
     if (!val || val === (currentValue ?? '')) { clearEdit(projectId); return }
     const updated = await saveProject(projectId, { [field]: val })
     if (updated) toast.success(`${field} updated`)
+  }
+
+  function handleRevisionCountBlur(projectId: string) {
+    const val = getEdit(projectId, 'revision_count')
+    const project = projects.find(p => p.id === projectId)
+    if (!project) return
+    const currentVal = project.revision_count ?? 0
+    const newVal = val ? Number(val) : 0
+    if (newVal === currentVal) { clearEdit(projectId); return }
+    const updated = { ...project, revision_count: newVal }
+    onUpdate(updated)
+    clearEdit(projectId)
+    toast.success('Revision count updated')
   }
 
   async function handleAdvancePaidBlur(projectId: string) {
@@ -364,7 +376,7 @@ export default function ProjectsOperationsView({
                       value={getEdit(p.id, 'revision_count') || (p.revision_count ?? 0)}
                       onChange={e => setEdit(p.id, 'revision_count', e.target.value)}
                       onFocus={e => { if (!getEdit(p.id, 'revision_count')) e.target.value = String(p.revision_count ?? 0) }}
-                      onBlur={() => handleFieldBlur(p.id, 'revision_count', (p.revision_count ?? 0).toString())}
+                      onBlur={() => handleRevisionCountBlur(p.id)}
                       onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
                       className="h-6 w-12 text-center text-xs font-mono px-1"
                     />
