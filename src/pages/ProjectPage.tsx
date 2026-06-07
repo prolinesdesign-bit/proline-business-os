@@ -113,9 +113,14 @@ export default function ProjectPage() {
   }, [events])
 
   const badgeVariant: Record<string, 'success' | 'default' | 'warning' | 'destructive'> = {
-    active: 'success',
-    completed: 'default',
-    on_hold: 'warning',
+    lead: 'warning',
+    communicated: 'default',
+    advance_paid: 'success',
+    prelim_model: 'default',
+    discussed: 'default',
+    final_render: 'default',
+    balance_paid: 'success',
+    delivered: 'default',
     cancelled: 'destructive',
   }
 
@@ -232,7 +237,7 @@ export default function ProjectPage() {
             <Link to={`/payments`}>Payments</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link to={`/documents`}>Documents</Link>
+            <Link to={`/documents?project_id=${project.id}`}>Documents</Link>
           </Button>
           <Button variant="outline" asChild>
             <Link to={`/sitevisits`}>Site Visits</Link>

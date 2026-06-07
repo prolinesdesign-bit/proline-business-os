@@ -96,7 +96,7 @@ export default function ProjectsOperationsView({
         location: overrides.location ?? project.location ?? '',
         location_url: overrides.location_url ?? project.location_url ?? '',
         expected_timeline: overrides.expected_timeline ?? project.expected_timeline ?? '',
-        expected_payment_date: overrides.expected_payment_date ?? project.expected_payment_date ?? '',
+        revision_count: overrides.revision_count ?? (project.revision_count ?? 0).toString(),
       })
       onUpdate(updated)
       clearEdit(projectId)
@@ -123,17 +123,15 @@ export default function ProjectsOperationsView({
     if (updated) toast.success(`${field} updated`)
   }
 
-  function handleRevisionCountBlur(projectId: string) {
+  async function handleRevisionCountBlur(projectId: string) {
     const val = getEdit(projectId, 'revision_count')
     const project = projects.find(p => p.id === projectId)
     if (!project) return
     const currentVal = project.revision_count ?? 0
     const newVal = val ? Number(val) : 0
     if (newVal === currentVal) { clearEdit(projectId); return }
-    const updated = { ...project, revision_count: newVal }
-    onUpdate(updated)
-    clearEdit(projectId)
-    toast.success('Revision count updated')
+    const updated = await saveProject(projectId, { revision_count: String(newVal) })
+    if (updated) toast.success('Revision count updated')
   }
 
   async function handleAdvancePaidBlur(projectId: string) {

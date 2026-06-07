@@ -15,7 +15,6 @@ export interface Project {
   location: string | null
   location_url: string | null
   expected_timeline: string | null
-  expected_payment_date: string | null
   revision_count: number | null
 }
 
@@ -28,11 +27,10 @@ export type ProjectFormData = {
   start_date: string
   end_date: string
   budget: string
-  project_type: string
-  location: string
-  location_url: string
-  expected_timeline: string
-  expected_payment_date: string
+  project_type?: string
+  location?: string
+  location_url?: string
+  expected_timeline?: string
   revision_count?: string
 }
 

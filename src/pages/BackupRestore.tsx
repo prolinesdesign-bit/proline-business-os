@@ -73,7 +73,7 @@ export default function BackupRestore() {
             variant="outline"
             size="sm"
             onClick={() => handleExport(table, fmt)}
-            disabled={isExporting}
+            disabled={isExporting || (table === 'all' && fmt === 'csv')}
           >
             {isExporting && exporting?.format === fmt ? 'Exporting...' : fmt.toUpperCase()}
           </Button>

@@ -2,13 +2,31 @@ import { supabase } from '../supabase'
 import type { Target, TargetFormData, TargetProgress } from '../../types'
 
 export async function getTargets(): Promise<Target[]> {
-  const { data, error } = await supabase
+  const { data: targets, error: targetsError } = await supabase
     .from('targets')
     .select('*')
     .order('start_date', { ascending: false })
 
-  if (error) throw error
-  return data ?? []
+  if (targetsError) throw targetsError
+
+  const { data: payments, error: paymentsError } = await supabase
+    .from('payments')
+    .select('amount, payment_date')
+    .eq('status', 'completed')
+
+  if (paymentsError) throw paymentsError
+
+  const targetsWithProgress = (targets ?? []).map((t: Target) => {
+    const revenue = (payments ?? [])
+      .filter(p => p.payment_date >= t.start_date && p.payment_date <= t.end_date)
+      .reduce((sum, p) => sum + Number(p.amount), 0)
+    return {
+      ...t,
+      current_value: revenue
+    }
+  })
+
+  return targetsWithProgress
 }
 
 export async function createTarget(data: TargetFormData): Promise<Target> {

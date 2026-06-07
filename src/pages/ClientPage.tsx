@@ -13,18 +13,15 @@ import { Skeleton } from '../components/ui/Skeleton'
 import { toast } from 'sonner'
 
 const badgeVariant: Record<string, 'success' | 'default' | 'warning' | 'destructive' | 'secondary'> = {
-  active: 'success',
-  completed: 'default',
-  on_hold: 'warning',
-  cancelled: 'destructive',
+  lead: 'warning',
+  communicated: 'default',
   advance_paid: 'success',
-  delivered: 'default',
+  prelim_model: 'default',
+  discussed: 'default',
   final_render: 'default',
-  balance_paid: 'default',
-  lead: 'secondary',
-  communicated: 'secondary',
-  prelim_model: 'secondary',
-  discussed: 'secondary',
+  balance_paid: 'success',
+  delivered: 'default',
+  cancelled: 'destructive',
 }
 
 export default function ClientPage() {

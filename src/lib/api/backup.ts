@@ -17,7 +17,7 @@ async function fetchTable(table: ExportTable): Promise<Record<string, unknown>[]
   const { data, error } = await supabase.from(table).select('*').order('created_at', { ascending: false })
   if (error) throw error
   return (data ?? []).map((row: Record<string, unknown>) => {
-    const { user_id, ...rest } = row
+    const { user_id: _, ...rest } = row
     return rest
   })
 }

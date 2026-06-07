@@ -9,6 +9,7 @@ import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Textarea } from '../ui/Textarea'
 import { Label } from '../ui/Label'
+import { Select } from '../ui/Select'
 
 interface ClientOption {
   id: string
@@ -30,7 +31,6 @@ const emptyForm: ProjectFormData = {
   location: '',
   location_url: '',
   expected_timeline: '',
-  expected_payment_date: '',
   revision_count: '0',
 }
 
@@ -43,6 +43,17 @@ const emptyClientForm: ClientFormData = {
   source: '',
   notes: '',
 }
+
+const STAGES = [
+  { value: 'lead', label: 'Lead' },
+  { value: 'communicated', label: 'Communicated' },
+  { value: 'advance_paid', label: 'Advance Paid' },
+  { value: 'prelim_model', label: 'Prelim Model' },
+  { value: 'discussed', label: 'Discussed' },
+  { value: 'final_render', label: 'Final Render' },
+  { value: 'balance_paid', label: 'Balance Paid' },
+  { value: 'delivered', label: 'Delivered' },
+]
 
 interface Props {
   project?: Project | null
@@ -68,7 +79,6 @@ export default function ProjectForm({ project, prefillClientId, onSuccess, onSav
           location: project.location ?? '',
           location_url: project.location_url ?? '',
           expected_timeline: project.expected_timeline ?? '',
-          expected_payment_date: project.expected_payment_date ?? '',
           revision_count: (project.revision_count ?? 0).toString(),
         }
       : { ...emptyForm, client_id: prefillClientId ?? '' },
@@ -362,6 +372,28 @@ export default function ProjectForm({ project, prefillClientId, onSuccess, onSav
             )}
           </div>
 
+          {/* Status */}
+          <div>
+            <Label htmlFor="status">Stage</Label>
+            <Select id="status" value={projectForm.status} onChange={e => setField('status', e.target.value)} className="mt-1">
+              {STAGES.map(s => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </Select>
+          </div>
+
+          {/* Timeline and Dates */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="start_date">Start Date</Label>
+              <Input id="start_date" type="date" value={projectForm.start_date} onChange={e => setField('start_date', e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <Label htmlFor="end_date">Deadline (Due Date)</Label>
+              <Input id="end_date" type="date" value={projectForm.end_date} onChange={e => setField('end_date', e.target.value)} className="mt-1" />
+            </div>
+          </div>
+
           {/* Amount */}
           <div>
             <Label htmlFor="budget">Amount (₹)</Label>
@@ -369,21 +401,40 @@ export default function ProjectForm({ project, prefillClientId, onSuccess, onSav
           </div>
 
           {/* Advance Paid */}
-          <div>
-            <Label htmlFor="advance">Advance Paid (₹)</Label>
-            <Input id="advance" type="number" min="0" step="0.01" value={advanceReceived} onChange={e => setAdvanceReceived(e.target.value)} className="mt-1" />
-          </div>
-
-          {/* Location */}
-          <div className={sectionClass}>
-            <h3 className={sectionTitleClass}>Location</h3>
+          {!isEditing && (
             <div>
-              <Label htmlFor="location">Location</Label>
-              <Input id="location" value={projectForm.location} onChange={e => setField('location', e.target.value)} className="mt-1" placeholder="e.g. Mumbai, Andheri West" />
+              <Label htmlFor="advance">Advance Paid (₹)</Label>
+              <Input id="advance" type="number" min="0" step="0.01" value={advanceReceived} onChange={e => setAdvanceReceived(e.target.value)} className="mt-1" />
+            </div>
+          )}
+
+          {/* Additional details */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="project_type">Project Type</Label>
+              <Input id="project_type" placeholder="e.g. Residential, Commercial" value={projectForm.project_type} onChange={e => setField('project_type', e.target.value)} className="mt-1" />
             </div>
             <div>
-              <Label htmlFor="location_url">Google Maps Link</Label>
-              <Input id="location_url" value={projectForm.location_url} onChange={e => setField('location_url', e.target.value)} className="mt-1" placeholder="https://maps.app.goo.gl/..." />
+              <Label htmlFor="revision_count">Revision Count</Label>
+              <Input id="revision_count" type="number" min="0" value={projectForm.revision_count} onChange={e => setField('revision_count', e.target.value)} className="mt-1" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="location">Location</Label>
+              <Input id="location" placeholder="City or Site Address" value={projectForm.location} onChange={e => setField('location', e.target.value)} className="mt-1" />
+            </div>
+            <div>
+              <Label htmlFor="location_url">Location Maps URL</Label>
+              <Input id="location_url" placeholder="https://maps.google.com/..." value={projectForm.location_url} onChange={e => setField('location_url', e.target.value)} className="mt-1" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="expected_timeline">Expected Timeline</Label>
+              <Input id="expected_timeline" placeholder="e.g. 3 months" value={projectForm.expected_timeline} onChange={e => setField('expected_timeline', e.target.value)} className="mt-1" />
             </div>
           </div>
 

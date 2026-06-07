@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { getDocuments, uploadDocument, deleteDocument, getDocumentDownloadUrl } from '../lib/api/documents'
 import { getProjects } from '../lib/api/projects'
 import type { Document, Project } from '../types'
@@ -32,16 +33,19 @@ function formatDate(d: string) {
 }
 
 export default function Documents() {
+  const [searchParams] = useSearchParams()
+  const projectIdParam = searchParams.get('project_id') || ''
+
   const [documents, setDocuments] = useState<Document[]>([])
   const [projects, setProjects] = useState<Pick<Project, 'id' | 'name'>[]>([])
   const [loading, setLoading] = useState(true)
-  const [filterProject, setFilterProject] = useState('')
+  const [filterProject, setFilterProject] = useState(projectIdParam)
   const [uploading, setUploading] = useState(false)
   const [deleting, setDeleting] = useState<Document | null>(null)
   const [preview, setPreview] = useState<Document | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
-  const [uploadData, setUploadData] = useState({ project_id: '', notes: '' })
+  const [uploadData, setUploadData] = useState({ project_id: projectIdParam, notes: '' })
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -66,6 +70,13 @@ export default function Documents() {
 
   useEffect(() => { fetchProjects() }, [fetchProjects])
   useEffect(() => { fetchDocs() }, [fetchDocs])
+
+  useEffect(() => {
+    if (projectIdParam) {
+      setFilterProject(projectIdParam)
+      setUploadData(prev => ({ ...prev, project_id: projectIdParam }))
+    }
+  }, [projectIdParam])
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -192,72 +203,74 @@ export default function Documents() {
         ) : documents.length === 0 ? (
           <EmptyState title="No documents yet" description="Upload your first document to get started." />
         ) : (
-          <div className="hidden md:block">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>File</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Size</TableHead>
-                  <TableHead>Uploaded</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Notes</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {documents.map(doc => {
-                  const project = projects.find(p => p.id === doc.project_id)
-                  return (
-                    <TableRow key={doc.id}>
-                      <TableCell className="whitespace-nowrap">
-                        <span className="flex items-center gap-2">
-                          <span>{FILE_ICONS[doc.file_type] ?? '📎'}</span>
-                          <span className="font-medium truncate max-w-[200px]">{doc.name}</span>
-                        </span>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-muted-foreground text-xs">{doc.file_type.split('/').pop()?.toUpperCase()}</TableCell>
-                      <TableCell className="whitespace-nowrap text-muted-foreground">{formatSize(doc.file_size)}</TableCell>
-                      <TableCell className="whitespace-nowrap text-muted-foreground">{formatDate(doc.created_at)}</TableCell>
-                      <TableCell className="whitespace-nowrap text-muted-foreground">{project?.name ?? '—'}</TableCell>
-                      <TableCell className="max-w-[150px] truncate text-muted-foreground">{doc.notes ?? '—'}</TableCell>
-                      <TableCell className="whitespace-nowrap text-right">
-                        <Button variant="link" size="sm" onClick={() => handlePreview(doc)}>Preview</Button>
-                        <Button variant="link" size="sm" className="ml-3 text-green-600" onClick={() => handleDownload(doc)}>Download</Button>
-                        <Button variant="link" size="sm" className="ml-3 text-destructive" onClick={() => setDeleting(doc)}>Delete</Button>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
+          <>
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>File</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Uploaded</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Notes</TableHead>
+                    <TableHead />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {documents.map(doc => {
+                    const project = projects.find(p => p.id === doc.project_id)
+                    return (
+                      <TableRow key={doc.id}>
+                        <TableCell className="whitespace-nowrap">
+                          <span className="flex items-center gap-2">
+                            <span>{FILE_ICONS[doc.file_type] ?? '📎'}</span>
+                            <span className="font-medium truncate max-w-[200px]">{doc.name}</span>
+                          </span>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground text-xs">{doc.file_type.split('/').pop()?.toUpperCase()}</TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">{formatSize(doc.file_size)}</TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">{formatDate(doc.created_at)}</TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">{project?.name ?? '—'}</TableCell>
+                        <TableCell className="max-w-[150px] truncate text-muted-foreground">{doc.notes ?? '—'}</TableCell>
+                        <TableCell className="whitespace-nowrap text-right">
+                          <Button variant="link" size="sm" onClick={() => handlePreview(doc)}>Preview</Button>
+                          <Button variant="link" size="sm" className="ml-3 text-green-600" onClick={() => handleDownload(doc)}>Download</Button>
+                          <Button variant="link" size="sm" className="ml-3 text-destructive" onClick={() => setDeleting(doc)}>Delete</Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </div>
 
-      {/* Mobile card view */}
-      <div className="space-y-3 md:hidden">
-        {documents.map((doc) => {
-          const project = projects.find(p => p.id === doc.project_id)
-          return (
-            <Card key={doc.id}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">{doc.name}</p>
-                    <p className="text-xs text-muted-foreground">{doc.file_type.split('/').pop()?.toUpperCase()} · {formatSize(doc.file_size)}</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(doc.created_at)}{project ? ` · ${project.name}` : ''}</p>
-                    {doc.notes && <p className="mt-1 text-xs text-muted-foreground truncate">{doc.notes}</p>}
-                  </div>
-                  <div className="flex gap-1 ml-3">
-                    <button onClick={() => handlePreview(doc)} className="text-xs text-blue-600 hover:underline">View</button>
-                    <button onClick={() => setDeleting(doc)} className="text-xs text-red-600 hover:underline">Del</button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
+            {/* Mobile card view */}
+            <div className="space-y-3 md:hidden">
+              {documents.map((doc) => {
+                const project = projects.find(p => p.id === doc.project_id)
+                return (
+                  <Card key={doc.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground truncate">{doc.name}</p>
+                          <p className="text-xs text-muted-foreground">{doc.file_type.split('/').pop()?.toUpperCase()} · {formatSize(doc.file_size)}</p>
+                          <p className="text-xs text-muted-foreground">{formatDate(doc.created_at)}{project ? ` · ${project.name}` : ''}</p>
+                          {doc.notes && <p className="mt-1 text-xs text-muted-foreground truncate">{doc.notes}</p>}
+                        </div>
+                        <div className="flex gap-1 ml-3">
+                          <button onClick={() => handlePreview(doc)} className="text-xs text-blue-600 hover:underline">View</button>
+                          <button onClick={() => setDeleting(doc)} className="text-xs text-red-600 hover:underline">Del</button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {preview && previewUrl && (
