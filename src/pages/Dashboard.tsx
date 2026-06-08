@@ -173,19 +173,19 @@ export default function Dashboard() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-3">
                     <div>
                       <p className="text-xs text-muted-foreground">Target</p>
-                      <p className="text-lg font-bold">\u20B9{Math.round(data.targetProgress.target.target_value).toLocaleString()}</p>
+                      <p className="text-lg font-bold">₹{Math.round(data.targetProgress.target.target_value).toLocaleString()}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Current</p>
-                      <p className="text-lg font-bold text-success">\u20B9{Math.round(data.targetProgress.currentRevenue).toLocaleString()}</p>
+                      <p className="text-lg font-bold text-success">₹{Math.round(data.targetProgress.currentRevenue).toLocaleString()}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Remaining</p>
-                      <p className="text-lg font-bold text-warning">\u20B9{Math.round(data.targetProgress.remaining).toLocaleString()}</p>
+                      <p className="text-lg font-bold text-warning">₹{Math.round(data.targetProgress.remaining).toLocaleString()}</p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Daily Needed</p>
-                      <p className="text-lg font-bold text-chart-4">\u20B9{Math.round(data.targetProgress.dailyNeeded).toLocaleString()}</p>
+                      <p className="text-lg font-bold text-chart-4">₹{Math.round(data.targetProgress.dailyNeeded).toLocaleString()}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
