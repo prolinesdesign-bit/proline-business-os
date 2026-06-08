@@ -106,7 +106,7 @@ export function SiteVisitsIcon({ className }: Props) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-      <circle cx="12" cy="10" r="3" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   )
 }
@@ -209,24 +209,19 @@ export const NAV_ICONS: Record<string, (props: Props) => React.ReactElement> = {
 
 export type NavKey = keyof typeof NAV_ICONS
 
-export const NAV_ITEMS: { key: NavKey; label: string; path: string }[] = [
-  { key: 'dashboard', label: 'Dashboard', path: '/dashboard' },
-  { key: 'projects', label: 'Projects', path: '/projects' },
-  { key: 'clients', label: 'Clients', path: '/clients' },
-  { key: 'payments', label: 'Payments', path: '/payments' },
-  { key: 'expenses', label: 'Expenses', path: '/expenses' },
-  { key: 'targets', label: 'Targets', path: '/targets' },
-  { key: 'tasks', label: 'Tasks', path: '/tasks' },
-  { key: 'documents', label: 'Documents', path: '/documents' },
-  { key: 'followups', label: 'Follow-ups', path: '/followups' },
-  { key: 'sitevisits', label: 'Site Visits', path: '/sitevisits' },
-  { key: 'proposals', label: 'Proposals', path: '/proposals' },
-  { key: 'calendar', label: 'Calendar', path: '/calendar' },
-  { key: 'analytics', label: 'Analytics', path: '/analytics' },
-  { key: 'backup', label: 'Backup', path: '/backup' },
-]
-
-export const PAGE_LABELS: Record<string, string> = {}
-for (const item of NAV_ITEMS) {
-  PAGE_LABELS[item.path.replace('/', '')] = item.label
+export const PAGE_LABELS: Record<string, string> = {
+  dashboard: 'Dashboard',
+  analytics: 'Analytics',
+  projects: 'Projects',
+  calendar: 'Calendar',
+  clients: 'Clients',
+  followups: 'Follow-ups',
+  payments: 'Payments',
+  expenses: 'Expenses',
+  targets: 'Targets',
+  tasks: 'Tasks',
+  documents: 'Documents',
+  sitevisits: 'Site Visits',
+  proposals: 'Proposals',
+  backup: 'Backup',
 }

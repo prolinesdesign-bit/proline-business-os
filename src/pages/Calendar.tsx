@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getCalendarEvents } from '../lib/api/calendar'
+import { buildCalendar } from '../lib/calendar'
 import type { CalendarEvent, CalendarDay } from '../types'
 import AppLayout from '../components/layout/AppLayout'
 import { Button } from '../components/ui/Button'
@@ -9,11 +10,11 @@ import { Badge } from '../components/ui/Badge'
 import { Skeleton } from '../components/ui/Skeleton'
 
 const STATUS_COLORS: Record<string, string> = {
-  active: 'bg-green-500',
-  completed: 'bg-blue-500',
-  on_hold: 'bg-yellow-500',
-  cancelled: 'bg-red-500',
-  scheduled: 'bg-purple-500',
+  active: 'bg-success',
+  completed: 'bg-primary',
+  on_hold: 'bg-warning',
+  cancelled: 'bg-destructive',
+  scheduled: 'bg-purple',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -25,52 +26,6 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-function getWeekBounds(now: Date) {
-  const day = now.getDay()
-  const diff = (day + 6) % 7
-  const monday = new Date(now)
-  monday.setDate(now.getDate() - diff)
-  monday.setHours(0, 0, 0, 0)
-  const sunday = new Date(monday)
-  sunday.setDate(monday.getDate() + 6)
-  sunday.setHours(23, 59, 59, 999)
-  return { monday, sunday }
-}
-
-function buildCalendar(year: number, month: number, events: CalendarEvent[]): CalendarDay[] {
-  const firstDay = new Date(year, month, 1)
-  const lastDay = new Date(year, month + 1, 0)
-  const startPad = firstDay.getDay()
-  const totalDays = lastDay.getDate()
-  const today = new Date()
-  const todayStr = today.toDateString()
-  const { monday, sunday } = getWeekBounds(today)
-
-  const days: CalendarDay[] = []
-
-  for (let i = 0; i < startPad; i++) {
-    const d = new Date(year, month, i - startPad + 1)
-    days.push({ date: d, day: d.getDate(), isCurrentMonth: false, isToday: false, isThisWeek: false, events: [] })
-  }
-
-  for (let i = 1; i <= totalDays; i++) {
-    const d = new Date(year, month, i)
-    const isToday = d.toDateString() === todayStr
-    const isThisWeek = d >= monday && d <= sunday
-    const dateStr = d.toISOString().slice(0, 10)
-    const dayEvents = events.filter(e => e.date === dateStr)
-    days.push({ date: d, day: i, isCurrentMonth: true, isToday, isThisWeek, events: dayEvents })
-  }
-
-  const remaining = 42 - days.length
-  for (let i = 1; i <= remaining; i++) {
-    const d = new Date(year, month + 1, i)
-    days.push({ date: d, day: d.getDate(), isCurrentMonth: false, isToday: false, isThisWeek: false, events: [] })
-  }
-
-  return days
-}
 
 export default function Calendar() {
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar')
@@ -127,7 +82,7 @@ export default function Calendar() {
     <AppLayout>
       <div className="mx-auto max-w-6xl px-4 py-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Calendar</h1>
+          <h1 className="font-display text-3xl tracking-tight">Calendar</h1>
           <div className="flex items-center gap-2">
             <div className="flex overflow-hidden rounded-lg border border-border text-xs mr-2">
               <button
@@ -149,7 +104,7 @@ export default function Calendar() {
           </div>
         </div>
 
-        <h2 className="mb-4 text-lg font-semibold">
+        <h2 className="mb-4 font-display text-xl tracking-tight">
           {new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
         </h2>
 
@@ -168,7 +123,7 @@ export default function Calendar() {
                     </p>
                     <div className="space-y-1.5">
                       {evts.map(e => (
-                        <div key={`${e.id}-${e.type}`} className={`flex items-center justify-between rounded-lg px-3 py-2 ${e.type === 'site_visit' ? 'bg-purple-50 dark:bg-purple-950/30' : isOverdue(e) ? 'bg-red-50 dark:bg-red-950/30' : 'bg-muted'}`}>
+                        <div key={`${e.id}-${e.type}`} className={`flex items-center justify-between rounded-lg px-3 py-2 ${e.type === 'site_visit' ? 'bg-purple-light/50 dark:bg-purple-950/30' : isOverdue(e) ? 'bg-destructive-light dark:bg-red-950/30' : 'bg-muted'}`}>
                           <div className="flex items-center gap-2 min-w-0">
                             <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_COLORS[e.status] ?? 'bg-gray-400'}`} />
                             <div className="min-w-0">
@@ -212,7 +167,7 @@ export default function Calendar() {
                       } ${day.isThisWeek ? 'ring-1 ring-inset ring-blue-200 dark:ring-blue-400/30' : ''}`}
                     >
                       <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium sm:h-6 sm:w-6 sm:text-xs ${
-                        day.isToday ? 'bg-blue-600 text-white' : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
+                        day.isToday ? 'bg-primary text-white' : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
                       }`}>
                         {day.day}
                       </span>
@@ -221,7 +176,7 @@ export default function Calendar() {
                           <div
                             key={`${e.id}-${e.type}`}
                             className={`flex items-center gap-1 rounded px-1 py-0.5 text-[10px] font-medium leading-tight ${
-                              isOverdue(e) ? 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300' : e.type === 'site_visit' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
+                              isOverdue(e) ? 'bg-destructive-light text-destructive dark:bg-red-950/50 dark:text-red-300' : e.type === 'site_visit' ? 'bg-purple-light text-purple dark:bg-purple-950/50 dark:text-purple-300' : 'bg-primary-light text-primary dark:bg-blue-950/50 dark:text-blue-300'
                             }`}
                           >
                             <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${STATUS_COLORS[e.status] ?? 'bg-gray-400'}`} />
@@ -243,10 +198,10 @@ export default function Calendar() {
 
             {/* Legend */}
             <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500" /> Active</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500" /> Completed</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-500" /> On Hold</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500" /> Cancelled</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-success" /> Active</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary" /> Completed</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-warning" /> On Hold</span>
+              <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-destructive" /> Cancelled</span>
               <span className="flex items-center gap-1"><Badge variant="destructive" className="rounded-sm px-1.5 py-0.5">Overdue</Badge></span>
                <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-full border-2 border-blue-200 dark:border-blue-400/30" /> This Week</span>
               <span className="flex items-center gap-1">S = Start &nbsp; D = Due</span>

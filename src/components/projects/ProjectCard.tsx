@@ -67,7 +67,7 @@ export default function ProjectCard({ project, docCount = 0, siteVisitPhotoCount
         </Button>
         <Link
           to={`/documents`}
-          className="text-sm text-blue-600 hover:underline ml-auto"
+          className="text-sm text-primary hover:underline ml-auto"
         >
           {docCount > 0 ? 'Documents' : 'Add Docs'}
         </Link>

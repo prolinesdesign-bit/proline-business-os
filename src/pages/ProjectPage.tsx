@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getProjects } from '../lib/api/projects'
 import { getProjectCalendarEvents } from '../lib/api/calendar'
+import { buildCalendar } from '../lib/calendar'
 import type { Project, CalendarEvent, CalendarDay } from '../types'
 import AppLayout from '../components/layout/AppLayout'
 import { Badge } from '../components/ui/Badge'
@@ -12,57 +13,11 @@ import { Skeleton } from '../components/ui/Skeleton'
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 const STATUS_COLORS: Record<string, string> = {
-  active: 'bg-green-500',
-  completed: 'bg-blue-500',
-  on_hold: 'bg-yellow-500',
-  cancelled: 'bg-red-500',
-  scheduled: 'bg-purple-500',
-}
-
-function getWeekBounds(now: Date) {
-  const day = now.getDay()
-  const diff = (day + 6) % 7
-  const monday = new Date(now)
-  monday.setDate(now.getDate() - diff)
-  monday.setHours(0, 0, 0, 0)
-  const sunday = new Date(monday)
-  sunday.setDate(monday.getDate() + 6)
-  sunday.setHours(23, 59, 59, 999)
-  return { monday, sunday }
-}
-
-function buildCalendar(year: number, month: number, events: CalendarEvent[]): CalendarDay[] {
-  const firstDay = new Date(year, month, 1)
-  const lastDay = new Date(year, month + 1, 0)
-  const startPad = firstDay.getDay()
-  const totalDays = lastDay.getDate()
-  const today = new Date()
-  const todayStr = today.toDateString()
-  const { monday, sunday } = getWeekBounds(today)
-
-  const days: CalendarDay[] = []
-
-  for (let i = 0; i < startPad; i++) {
-    const d = new Date(year, month, i - startPad + 1)
-    days.push({ date: d, day: d.getDate(), isCurrentMonth: false, isToday: false, isThisWeek: false, events: [] })
-  }
-
-  for (let i = 1; i <= totalDays; i++) {
-    const d = new Date(year, month, i)
-    const isToday = d.toDateString() === todayStr
-    const isThisWeek = d >= monday && d <= sunday
-    const dateStr = d.toISOString().slice(0, 10)
-    const dayEvents = events.filter(e => e.date === dateStr)
-    days.push({ date: d, day: i, isCurrentMonth: true, isToday, isThisWeek, events: dayEvents })
-  }
-
-  const remaining = 42 - days.length
-  for (let i = 1; i <= remaining; i++) {
-    const d = new Date(year, month + 1, i)
-    days.push({ date: d, day: d.getDate(), isCurrentMonth: false, isToday: false, isThisWeek: false, events: [] })
-  }
-
-  return days
+  active: 'bg-success',
+  completed: 'bg-primary',
+  on_hold: 'bg-warning',
+  cancelled: 'bg-destructive',
+  scheduled: 'bg-purple',
 }
 
 export default function ProjectPage() {
@@ -77,7 +32,10 @@ export default function ProjectPage() {
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null)
 
   useEffect(() => {
-    if (!id) return
+    if (!id) {
+      setLoading(false)
+      return
+    }
     let cancelled = false
     setLoading(true)
     getProjects('')
@@ -93,7 +51,10 @@ export default function ProjectPage() {
   }, [id])
 
   useEffect(() => {
-    if (!id) return
+    if (!id) {
+      setEventsLoading(false)
+      return
+    }
     let cancelled = false
     setEventsLoading(true)
     getProjectCalendarEvents(id)
@@ -172,7 +133,7 @@ export default function ProjectPage() {
         <div className="mx-auto max-w-5xl px-4 py-6">
           <p className="text-center text-muted-foreground py-12">Project not found.</p>
           <div className="text-center">
-            <Link to="/projects" className="text-sm text-blue-600 hover:underline">← Back to Projects</Link>
+            <Link to="/projects" className="text-sm text-primary hover:underline">← Back to Projects</Link>
           </div>
         </div>
       </AppLayout>
@@ -188,7 +149,7 @@ export default function ProjectPage() {
 
         <div className="mt-2 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">{project.name}</h1>
+            <h1 className="font-display text-3xl tracking-tight">{project.name}</h1>
             {project.client_name && (
               <p className="text-muted-foreground">{project.client_name}</p>
             )}
@@ -299,7 +260,7 @@ export default function ProjectPage() {
                     </p>
                     <div className="space-y-1.5">
                       {evts.map(e => (
-                        <div key={`${e.id}-${e.type}`} className={`flex items-center justify-between rounded-lg px-3 py-2 ${e.type === 'site_visit' ? 'bg-purple-50 dark:bg-purple-950/30' : isOverdue(e) ? 'bg-red-50 dark:bg-red-950/30' : 'bg-muted'}`}>
+                        <div key={`${e.id}-${e.type}`} className={`flex items-center justify-between rounded-lg px-3 py-2 ${e.type === 'site_visit' ? 'bg-purple-light/50 dark:bg-purple-950/30' : isOverdue(e) ? 'bg-destructive-light dark:bg-red-950/30' : 'bg-muted'}`}>
                           <div className="flex items-center gap-2 min-w-0">
                             <span className={`h-2 w-2 shrink-0 rounded-full ${STATUS_COLORS[e.status] ?? 'bg-gray-400'}`} />
                             <div className="min-w-0">
@@ -340,7 +301,7 @@ export default function ProjectPage() {
                         } ${day.isThisWeek ? 'ring-1 ring-inset ring-blue-200 dark:ring-blue-400/30' : ''}`}
                       >
                         <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium ${
-                          day.isToday ? 'bg-blue-600 text-white' : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
+                          day.isToday ? 'bg-primary text-white' : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
                         }`}>
                           {day.day}
                         </span>
@@ -349,7 +310,7 @@ export default function ProjectPage() {
                             <div
                               key={`${e.id}-${e.type}`}
                               className={`flex items-center gap-1 rounded px-1 py-0.5 text-[10px] font-medium leading-tight ${
-                                isOverdue(e) ? 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300' : e.type === 'site_visit' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300'
+                                isOverdue(e) ? 'bg-destructive-light text-destructive dark:bg-red-950/50 dark:text-red-300' : e.type === 'site_visit' ? 'bg-purple-light text-purple dark:bg-purple-950/50 dark:text-purple-300' : 'bg-primary-light text-primary dark:bg-blue-950/50 dark:text-blue-300'
                               }`}
                             >
                               <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${STATUS_COLORS[e.status] ?? 'bg-gray-400'}`} />
@@ -366,9 +327,9 @@ export default function ProjectPage() {
                 ))}
               </Card>
               <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500" /> Active</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500" /> Completed</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-purple-500" /> Site Visit</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-success" /> Active</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary" /> Completed</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-purple" /> Site Visit</span>
                 <span className="flex items-center gap-1"><Badge variant="destructive" className="rounded-sm px-1.5 py-0.5">Overdue</Badge></span>
               </div>
             </>

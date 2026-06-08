@@ -1,14 +1,31 @@
 import { forwardRef, type HTMLAttributes } from 'react'
+import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../lib/utils'
 
-const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+const cardVariants = cva(
+  'rounded-xl border text-card-foreground',
+  {
+    variants: {
+      variant: {
+        default: 'border-border bg-card shadow-sm',
+        elevated: 'border-border/50 bg-card shadow-md hover:shadow-lg transition-shadow',
+        subtle: 'border-transparent bg-muted/50 shadow-none',
+        outline: 'border-2 border-dashed border-border bg-transparent shadow-none',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+    },
+  },
+)
+
+interface CardProps extends HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {}
+
+const Card = forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(
-        'rounded-xl border border-border bg-card text-card-foreground shadow-sm',
-        className,
-      )}
+      className={cn(cardVariants({ variant, className }))}
       {...props}
     />
   ),
@@ -30,7 +47,7 @@ const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingEleme
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn('text-base font-semibold leading-none tracking-tight', className)}
+      className={cn('font-display text-lg leading-none tracking-tight', className)}
       {...props}
     />
   ),

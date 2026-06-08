@@ -122,7 +122,7 @@ export default function Proposals() {
     <AppLayout>
       <div className="mx-auto max-w-6xl px-4 py-6">
         <div className="flex items-center justify-between gap-4 mb-6">
-          <h1 className="text-2xl font-bold">Proposals</h1>
+          <h1 className="font-display text-3xl tracking-tight">Proposals</h1>
           <Button onClick={() => setShowForm(true)}>
             + New Proposal
           </Button>

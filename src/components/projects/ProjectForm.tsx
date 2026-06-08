@@ -257,9 +257,9 @@ export default function ProjectForm({ project, prefillClientId, onSuccess, onSav
         })
       })
 
-      onSuccess!(newProject.id)
-    } catch (err) {
-      const msg = (err as any)?.message || (err as any)?.error?.message || 'Failed to create project'
+      onSuccess?.(newProject.id)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to create project'
       console.error('Project creation error:', err)
       setError(msg)
     } finally {
@@ -455,7 +455,7 @@ export default function ProjectForm({ project, prefillClientId, onSuccess, onSav
                 >
                   <span className="text-lg">{docType === 'Photos' ? '📸' : '📄'}</span>
                   <span className="font-medium">{docType}</span>
-                  {docFiles[docType] && <span className="text-[10px] text-green-600 truncate max-w-full">{docFiles[docType].name}</span>}
+                  {docFiles[docType] && <span className="text-[10px] text-success truncate max-w-full">{docFiles[docType].name}</span>}
                   <input
                     type="file"
                     className="hidden"

@@ -69,7 +69,7 @@ export default function Targets() {
     <AppLayout>
       <div className="mx-auto max-w-5xl px-4 py-6">
         <div className="flex items-center justify-between gap-4 mb-6">
-          <h1 className="text-2xl font-bold">Targets</h1>
+          <h1 className="font-display text-3xl tracking-tight">Targets</h1>
           <Button onClick={() => setShowForm(true)}>
             + New Target
           </Button>
@@ -92,32 +92,32 @@ export default function Targets() {
                     </div>
                     <div>
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Current Revenue</p>
-                      <p className="mt-1 text-2xl font-bold text-green-600">{formatCurrency(progress.currentRevenue)}</p>
+                      <p className="mt-1 text-2xl font-bold text-success">{formatCurrency(progress.currentRevenue)}</p>
                     </div>
                     <div>
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Remaining</p>
-                      <p className={`mt-1 text-2xl font-bold ${progress.remaining > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                      <p className={`mt-1 text-2xl font-bold ${progress.remaining > 0 ? 'text-warning' : 'text-success'}`}>
                         {formatCurrency(progress.remaining)}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Daily Needed</p>
-                      <p className="mt-1 text-2xl font-bold text-orange-600">{formatCurrency(progress.dailyNeeded)}</p>
+                      <p className="mt-1 text-2xl font-bold text-chart-4">{formatCurrency(progress.dailyNeeded)}</p>
                     </div>
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-gray-600">Progress</span>
+                      <span className="text-muted-foreground">Progress</span>
                       <span className="font-medium">{progress.percentage}%</span>
                     </div>
-                    <div className="h-3 w-full overflow-hidden rounded-full bg-gray-100">
+                    <div className="h-3 w-full overflow-hidden rounded-full bg-muted">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${
-                          progress.percentage >= 100 ? 'bg-green-500' :
-                          progress.percentage >= 75 ? 'bg-blue-500' :
-                          progress.percentage >= 50 ? 'bg-amber-500' :
-                          'bg-orange-500'
+                          progress.percentage >= 100 ? 'bg-success' :
+                          progress.percentage >= 75 ? 'bg-primary' :
+                          progress.percentage >= 50 ? 'bg-chart-4' :
+                          'bg-chart-6'
                         }`}
                         style={{ width: `${Math.min(100, progress.percentage)}%` }}
                       />
@@ -168,11 +168,11 @@ export default function Targets() {
                         </div>
                         <div className="text-right shrink-0">
                           <p className="text-sm font-medium">{formatCurrency(t.current_value)} / {formatCurrency(t.target_value)}</p>
-                          <div className="mt-1 h-2 w-24 overflow-hidden rounded-full bg-gray-100 ml-auto">
+                          <div className="mt-1 h-2 w-24 overflow-hidden rounded-full bg-muted ml-auto">
                             <div className={`h-full rounded-full ${
-                              t.status === 'achieved' ? 'bg-green-500' :
-                              t.status === 'missed' ? 'bg-red-500' :
-                              'bg-blue-500'
+                            t.status === 'achieved' ? 'bg-success' :
+                            t.status === 'missed' ? 'bg-destructive' :
+                            'bg-primary'
                             }`} style={{ width: `${pct}%` }} />
                           </div>
                         </div>

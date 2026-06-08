@@ -1,17 +1,17 @@
 import { useEffect, useState, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import type { Client, ClientFormData, ClientStats, FollowUpWithClient } from '../types'
 import { getClients, createClient, updateClient, deleteClient } from '../lib/api/clients'
 import { getFollowUpsByClient } from '../lib/api/followups'
-import ClientCard from '../components/clients/ClientCard'
 import ClientForm from '../components/clients/ClientForm'
-import WhatsAppModal from '../components/WhatsAppModal'
 import AppLayout from '../components/layout/AppLayout'
 import { Button } from '../components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Input } from '../components/ui/Input'
 import { Badge } from '../components/ui/Badge'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../components/ui/Table'
 import { toast } from 'sonner'
-import { CardSkeleton } from '../components/ui/Skeleton'
+import { TableSkeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
 
 const statusBadge: Record<string, 'warning' | 'default' | 'purple' | 'success'> = {
@@ -26,6 +26,12 @@ function formatDate(d: string | null) {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function generateWhatsAppLink(phone: string): string {
+  let cleaned = phone.replace(/\D/g, '')
+  if (cleaned.length === 10) cleaned = '91' + cleaned
+  return `https://wa.me/${cleaned}`
+}
+
 export default function Clients() {
   const [clients, setClients] = useState<(Client & { stats: ClientStats })[]>([])
   const [search, setSearch] = useState('')
@@ -36,7 +42,6 @@ export default function Clients() {
   const [expandedClient, setExpandedClient] = useState<string | null>(null)
   const [followUps, setFollowUps] = useState<Record<string, FollowUpWithClient[]>>({})
   const [loadingFu, setLoadingFu] = useState(false)
-  const [whatsappTarget, setWhatsappTarget] = useState<Client | null>(null)
 
   const fetch = useCallback(async () => {
     setLoading(true)
@@ -65,8 +70,8 @@ export default function Clients() {
       setShowForm(false)
       setEditing(null)
       fetch()
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save client')
     }
   }
 
@@ -77,8 +82,8 @@ export default function Clients() {
       toast.success('Client deleted')
       setDeleting(null)
       fetch()
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete client')
     }
   }
 
@@ -103,9 +108,9 @@ export default function Clients() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-4xl px-4 py-6">
+      <div className="mx-auto max-w-6xl px-4 py-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Clients</h1>
+        <h1 className="font-display text-3xl tracking-tight">Clients</h1>
         <Button onClick={() => setShowForm(true)}>
           + Add Client
         </Button>
@@ -120,8 +125,8 @@ export default function Clients() {
       />
 
       {loading ? (
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <CardSkeleton /><CardSkeleton /><CardSkeleton /><CardSkeleton />
+        <div className="mt-4">
+          <TableSkeleton rows={6} />
         </div>
       ) : clients.length === 0 ? (
         <div className="mt-8">
@@ -132,64 +137,125 @@ export default function Clients() {
           )}
         </div>
       ) : (
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {clients.map(c => (
-            <div key={c.id} className="hover:shadow-md transition-shadow">
-              <ClientCard
-                client={c}
-                stats={c.stats}
-                onEdit={() => { setEditing(c); setShowForm(true) }}
-                onDelete={() => setDeleting(c)}
-              />
-              <div className="mt-1 flex gap-2">
-                {c.phone && (
-                  <Button
-                    variant="success"
-                    size="sm"
-                    onClick={() => setWhatsappTarget(c)}
-                  >
-                    WhatsApp
-                  </Button>
-                )}
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => toggleExpand(c.id)}
-                >
-                  {expandedClient === c.id ? 'Hide follow-ups' : 'Show follow-ups'}
-                </Button>
-              </div>
-              {expandedClient === c.id && (
-                <div className="mt-2">
-                  <Card>
-                    <CardContent className="p-3">
-                      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Follow-up History</h4>
-                      {loadingFu ? (
-                        <p className="text-xs text-muted-foreground">Loading...</p>
-                      ) : followUps[c.id]?.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">No follow-ups yet.</p>
+        <div className="mt-4 rounded-lg border border-border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Source</TableHead>
+                <TableHead>Projects</TableHead>
+                <TableHead>Total Value</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {clients.map(c => (
+                <>
+                  <TableRow key={c.id} className="group">
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <Link to={`/client/${c.id}`} className="hover:underline truncate max-w-[180px]">
+                          {c.name}
+                        </Link>
+                        <Link
+                          to={`/client/${c.id}`}
+                          className="shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Open client"
+                        >
+                          ↗
+                        </Link>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {c.phone ? (
+                        <a
+                          href={generateWhatsAppLink(c.phone)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {c.phone}
+                        </a>
                       ) : (
-                        <div className="space-y-1.5">
-                          {followUps[c.id]?.map(fu => (
-                            <div key={fu.id} className="flex items-center justify-between rounded bg-card px-2.5 py-1.5 text-xs">
-                              <div className="flex items-center gap-2">
-                                <Badge variant={statusBadge[fu.status]}>
-                                  {fu.status.replace('_', ' ')}
-                                </Badge>
-                                <span>Next: {formatDate(fu.next_follow_up_date)}</span>
-                                <span>Last: {formatDate(fu.last_follow_up_date)}</span>
-                              </div>
-                              {fu.notes && <span className="truncate max-w-[120px] text-muted-foreground ml-2">{fu.notes}</span>}
-                            </div>
-                          ))}
-                        </div>
+                        <span className="text-muted-foreground">—</span>
                       )}
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </div>
-          ))}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{c.email || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{c.company || '—'}</TableCell>
+                    <TableCell>
+                      {c.source ? (
+                        <Badge variant="outline">{c.source}</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>{c.stats.project_count}</TableCell>
+                    <TableCell className="font-medium">
+                      ₹{(c.stats.total_value || 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="link"
+                          size="sm"
+                          onClick={() => toggleExpand(c.id)}
+                        >
+                          {expandedClient === c.id ? 'Hide FU' : 'FU'}
+                        </Button>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          onClick={() => { setEditing(c); setShowForm(true) }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="text-destructive"
+                          onClick={() => setDeleting(c)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  {expandedClient === c.id && (
+                    <TableRow key={`${c.id}-fu`}>
+                      <TableCell colSpan={8} className="bg-muted/30 p-0">
+                        <div className="px-4 py-3">
+                          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Follow-up History</h4>
+                          {loadingFu ? (
+                            <p className="text-xs text-muted-foreground">Loading...</p>
+                          ) : followUps[c.id]?.length === 0 ? (
+                            <p className="text-xs text-muted-foreground">No follow-ups yet.</p>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {followUps[c.id]?.map(fu => (
+                                <div key={fu.id} className="flex items-center justify-between rounded bg-card px-2.5 py-1.5 text-xs">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant={statusBadge[fu.status]}>
+                                      {fu.status.replace('_', ' ')}
+                                    </Badge>
+                                    <span>Next: {formatDate(fu.next_follow_up_date)}</span>
+                                    <span>Last: {formatDate(fu.last_follow_up_date)}</span>
+                                  </div>
+                                  {fu.notes && <span className="truncate max-w-[200px] text-muted-foreground ml-2">{fu.notes}</span>}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       )}
 
@@ -219,15 +285,9 @@ export default function Clients() {
           </Card>
         </div>
       )}
-
-      {whatsappTarget && whatsappTarget.phone && (
-        <WhatsAppModal
-          phone={whatsappTarget.phone}
-          clientName={whatsappTarget.name}
-          onClose={() => setWhatsappTarget(null)}
-        />
-      )}
     </div>
     </AppLayout>
   )
 }
+
+

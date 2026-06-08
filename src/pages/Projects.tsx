@@ -289,8 +289,8 @@ export default function Projects() {
       setShowForm(false)
       setEditing(null)
       fetch()
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save project')
     }
   }
 
@@ -301,8 +301,8 @@ export default function Projects() {
       toast.success('Project deleted')
       setDeleting(null)
       fetch()
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete project')
     }
   }
 
@@ -310,7 +310,7 @@ export default function Projects() {
     <AppLayout>
       <div className={`mx-auto px-4 py-6 ${viewMode === 'operations' ? 'max-w-7xl' : 'max-w-4xl'}`}>
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Projects</h1>
+        <h1 className="font-display text-3xl tracking-tight">Projects</h1>
         <div className="flex items-center gap-2">
           <div className="flex overflow-hidden rounded-lg border border-border text-xs">
             <button
@@ -393,8 +393,8 @@ export default function Projects() {
                       !day.isCurrentMonth ? 'bg-muted/50' : ''
                     } ${day.isThisWeek ? 'ring-1 ring-inset ring-blue-200 dark:ring-blue-400/30' : ''}`}
                   >
-                    <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-medium sm:h-6 sm:w-6 sm:text-xs ${
-                      day.isToday ? 'bg-blue-600 text-white' : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
+                    <span className={`inline-flex h-5 w-5 items-center justify-center text-xs font-medium sm:h-6 sm:w-6 sm:text-sm ${
+                      day.isToday ? 'bg-blue-600 text-white rounded' : day.isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'
                     }`}>
                       {day.day}
                     </span>
@@ -403,7 +403,7 @@ export default function Projects() {
                         <div
                           key={`${e.id}-${e.type}`}
                           className={`flex items-center gap-1 rounded px-1 py-0.5 text-[10px] font-medium leading-tight ${
-                            isOverdue(e) ? 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300' : e.type === 'start' ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300' : 'bg-yellow-50 text-yellow-700 dark:bg-yellow-950/50 dark:text-yellow-300'
+                            isOverdue(e) ? 'bg-destructive-light text-destructive dark:bg-red-950/50 dark:text-red-300' : e.type === 'start' ? 'bg-primary-light text-primary dark:bg-blue-950/50 dark:text-blue-300' : 'bg-warning-light text-warning dark:bg-yellow-950/50 dark:text-yellow-300'
                           }`}
                         >
                           <span className="truncate">{e.name}</span>
@@ -421,32 +421,29 @@ export default function Projects() {
             ))}
           </Card>
           <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-500" /> Start</span>
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-500" /> Due</span>
-            <span className="flex items-center gap-1"><Badge variant="destructive" className="rounded-sm px-1.5 py-0.5">Overdue</Badge></span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 bg-primary" /> Start</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 bg-warning" /> Due</span>
+            <span className="flex items-center gap-1"><span className="text-xs font-medium text-destructive bg-destructive-light px-1.5 py-0.5 rounded">Overdue</span></span>
           </div>
         </div>
       ) : viewMode === 'operations' ? (
         <div className="mt-4">
-          {/* Ops View Toolbar */}
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            {/* Stage filter */}
             <Select
               value={stageFilter}
               onChange={e => setStageFilter(e.target.value)}
-              className="h-7 w-32 text-xs"
+              className="h-8 w-32 text-sm"
             >
               {STAGE_FILTER_OPTIONS.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </Select>
 
-            {/* Sort */}
             <div className="flex items-center gap-1">
               <Select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
-                className="h-7 w-32 text-xs"
+                className="h-8 w-36 text-sm"
               >
                 {SORT_OPTIONS.map(o => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -454,23 +451,22 @@ export default function Projects() {
               </Select>
               <button
                 onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-                className="flex h-7 w-7 items-center justify-center rounded border border-border bg-card text-xs text-muted-foreground hover:bg-accent"
+                className="flex h-8 w-8 items-center justify-center border border-border rounded text-sm text-muted-foreground hover:bg-muted transition-colors"
                 title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
               >
                 {sortDir === 'asc' ? '\u2191' : '\u2193'}
               </button>
             </div>
 
-            {/* Period quick filters */}
-            <div className="flex overflow-hidden rounded-lg border border-border text-xs">
+            <div className="flex items-center gap-1">
               {PERIOD_OPTIONS.map(opt => (
                 <button
                   key={opt.value}
-                  onClick={() => setPeriod(opt.value)}
-                  className={`px-2 py-1.5 transition-colors ${
+                  onClick={() => { setPeriod(opt.value); if (opt.value !== 'custom') { setCustomStart(''); setCustomEnd('') } }}
+                  className={`px-3 py-1.5 text-sm rounded transition-colors ${
                     period === opt.value
                       ? 'bg-primary text-primary-foreground'
-                      : 'bg-card text-muted-foreground hover:bg-accent'
+                      : 'text-muted-foreground hover:bg-muted'
                   }`}
                 >
                   {opt.label === 'Current Month' ? 'This Month' : opt.label}
@@ -478,29 +474,26 @@ export default function Projects() {
               ))}
             </div>
 
-            {/* Custom date range */}
             {period === 'custom' && (
               <div className="flex items-center gap-1">
                 <Input
                   type="date"
                   value={customStart}
                   onChange={e => setCustomStart(e.target.value)}
-                  className="h-7 w-32 text-xs"
-                  placeholder="Start"
+                  className="h-8 w-32 text-sm"
                 />
-                <span className="text-xs text-muted-foreground">→</span>
+                <span className="text-sm text-muted-foreground">→</span>
                 <Input
                   type="date"
                   value={customEnd}
                   onChange={e => setCustomEnd(e.target.value)}
-                  className="h-7 w-32 text-xs"
-                  placeholder="End"
+                  className="h-8 w-32 text-sm"
                 />
               </div>
             )}
 
             {periodRange && period !== 'custom' && (
-              <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+              <span className="text-xs text-muted-foreground/60 whitespace-nowrap">
                 {periodRange.start} — {periodRange.end}
               </span>
             )}

@@ -12,17 +12,17 @@ import { CardSkeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
 
 const statusColors: Record<Task['status'], string> = {
-  todo: 'bg-gray-100 text-gray-700',
-  in_progress: 'bg-blue-100 text-blue-700',
-  done: 'bg-green-100 text-green-700',
-  cancelled: 'bg-red-100 text-red-700',
+  todo: 'bg-muted text-muted-foreground',
+  in_progress: 'bg-primary-light text-primary',
+  done: 'bg-success-light text-success',
+  cancelled: 'bg-destructive-light text-destructive',
 }
 
 const priorityColors: Record<Task['priority'], string> = {
-  low: 'border-gray-300 text-gray-600',
-  medium: 'border-yellow-300 text-yellow-700',
-  high: 'border-orange-300 text-orange-700',
-  urgent: 'border-red-300 text-red-700',
+  low: 'border-border text-muted-foreground',
+  medium: 'border-chart-4/50 text-chart-4',
+  high: 'border-chart-1/50 text-chart-1',
+  urgent: 'border-destructive/50 text-destructive',
 }
 
 export default function Tasks() {
@@ -58,8 +58,8 @@ export default function Tasks() {
       setShowForm(false)
       setEditing(null)
       fetch()
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save task')
     }
   }
 
@@ -68,8 +68,8 @@ export default function Tasks() {
       await updateTaskStatus(task.id, newStatus)
       toast.success('Task status updated')
       fetch()
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update task status')
     }
   }
 
@@ -80,8 +80,8 @@ export default function Tasks() {
       toast.success('Task deleted')
       setDeleting(null)
       fetch()
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete task')
     }
   }
 
@@ -89,7 +89,7 @@ export default function Tasks() {
     <AppLayout>
       <div className="mx-auto max-w-5xl px-4 py-6">
         <div className="flex items-center justify-between gap-4 mb-6">
-          <h1 className="text-2xl font-bold">Tasks</h1>
+          <h1 className="font-display text-3xl tracking-tight">Tasks</h1>
           <Button onClick={() => setShowForm(true)}>
             + New Task
           </Button>
@@ -118,7 +118,7 @@ export default function Tasks() {
         ) : (
           <div className="space-y-2">
             {tasks.map(t => (
-              <Card key={t.id} className="hover:shadow-md transition-shadow">
+              <Card key={t.id}>
                 <CardContent className="flex items-center gap-3 p-4">
                   <select
                     value={t.status}
@@ -133,10 +133,9 @@ export default function Tasks() {
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className={priorityColors[t.priority]}>
+                      <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider ${priorityColors[t.priority]}`}>
                         {t.priority}
-                      </Badge>
-                      <span className={`line-through ${t.status === 'done' ? '' : 'hidden'} mr-1`} />
+                      </span>
                       <span className={`font-medium ${t.status === 'done' ? 'text-muted-foreground line-through' : ''}`}>
                         {t.title}
                       </span>

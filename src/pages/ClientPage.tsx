@@ -34,7 +34,10 @@ export default function ClientPage() {
   const [showNewProject, setShowNewProject] = useState(false)
 
   useEffect(() => {
-    if (!id) return
+    if (!id) {
+      setLoading(false)
+      return
+    }
     let cancelled = false
     setLoading(true)
     Promise.all([
@@ -90,7 +93,7 @@ export default function ClientPage() {
         <div className="mx-auto max-w-5xl px-4 py-6">
           <p className="text-center text-muted-foreground py-12">Client not found.</p>
           <div className="text-center">
-            <Link to="/clients" className="text-sm text-blue-600 hover:underline">← Back to Clients</Link>
+            <Link to="/clients" className="text-sm text-primary hover:underline">← Back to Clients</Link>
           </div>
         </div>
       </AppLayout>
@@ -106,7 +109,7 @@ export default function ClientPage() {
 
         <div className="mt-2 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">{client.name}</h1>
+            <h1 className="font-display text-3xl tracking-tight">{client.name}</h1>
             {client.company && <p className="text-muted-foreground">{client.company}</p>}
             {client.address && <p className="text-xs text-muted-foreground mt-0.5">{client.address}</p>}
           </div>
@@ -188,7 +191,7 @@ export default function ClientPage() {
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <Link to={`/project/${p.id}`} className="text-sm font-medium text-blue-600 hover:underline">
+                          <Link to={`/project/${p.id}`} className="text-sm font-medium text-primary hover:underline">
                             {p.name}
                           </Link>
                           <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">

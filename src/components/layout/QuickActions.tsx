@@ -23,12 +23,13 @@ export default function QuickActions() {
       {/* Action menu */}
       {open && (
         <div className="mb-3 flex flex-col items-end gap-2">
-          {ACTIONS.map((a) => (
+          {ACTIONS.map((a, i) => (
             <button
               key={a.path}
               onClick={() => handleAction(a.path)}
               title={a.hint}
-              className="flex items-center gap-2 rounded-lg bg-card px-4 py-3 text-sm font-medium text-card-foreground shadow-lg ring-1 ring-border hover:bg-accent hover:text-primary transition-all animate-[fadeIn_0.15s_ease-out]"
+              style={{ animationDelay: `${i * 0.04}s` }}
+              className="animate-fade-in flex items-center gap-2 rounded-lg bg-card px-4 py-3 text-sm font-medium text-card-foreground shadow-lg ring-1 ring-border hover:bg-accent hover:text-primary transition-all"
             >
               {a.label}
             </button>

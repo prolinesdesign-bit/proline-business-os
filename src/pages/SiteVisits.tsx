@@ -108,7 +108,7 @@ export default function SiteVisits() {
     <AppLayout>
       <div className="mx-auto max-w-5xl px-4 py-6">
         <div className="flex items-center justify-between gap-4 mb-6">
-          <h1 className="text-2xl font-bold">Site Visits</h1>
+          <h1 className="font-display text-3xl tracking-tight">Site Visits</h1>
           <Button onClick={() => setShowForm(true)}>
             + New Site Visit
           </Button>
@@ -190,13 +190,13 @@ export default function SiteVisits() {
                         <div key={i} className="group relative">
                           <button
                             onClick={() => setPreviewUrl(url)}
-                            className="block h-20 w-20 overflow-hidden rounded-lg border border-gray-200"
+                            className="block h-20 w-20 overflow-hidden rounded-lg border border-border"
                           >
                             <img src={url} alt={`Photo ${i + 1}`} className="h-full w-full object-cover" />
                           </button>
                           <button
                             onClick={() => handleDeletePhoto(sv.id, url)}
-                            className="absolute -right-1.5 -top-1.5 hidden h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white group-hover:flex"
+                            className="absolute -right-1.5 -top-1.5 hidden h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-white group-hover:flex"
                           >
                             &times;
                           </button>

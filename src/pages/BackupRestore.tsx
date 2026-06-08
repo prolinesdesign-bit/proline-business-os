@@ -85,7 +85,7 @@ export default function BackupRestore() {
   return (
     <AppLayout>
       <div className="mx-auto max-w-3xl px-4 py-6">
-        <h1 className="mb-6 text-2xl font-bold">Backup & Restore Center</h1>
+        <h1 className="mb-6 font-display text-3xl tracking-tight">Backup & Restore Center</h1>
 
         {/* Export Section */}
         <Card className="mb-8">
@@ -93,9 +93,9 @@ export default function BackupRestore() {
           <h2 className="text-lg font-semibold mb-4">Export Data</h2>
 
           {/* Export All */}
-          <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
+          <div className="flex items-center justify-between border-b border-border pb-4 mb-4">
             <div>
-              <p className="font-medium text-gray-900">All Data</p>
+              <p className="font-medium text-foreground">All Data</p>
               <p className="text-xs text-muted-foreground">Export every module in a single file</p>
             </div>
             <ExportButtons table="all" />
@@ -106,8 +106,8 @@ export default function BackupRestore() {
             {TABLES.map(table => (
               <div key={table} className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{TABLE_LABELS[table]}</p>
-                  <p className="text-xs text-gray-400">{table}</p>
+                  <p className="text-sm font-medium text-foreground">{TABLE_LABELS[table]}</p>
+                  <p className="text-xs text-muted-foreground/60">{table}</p>
                 </div>
                 <ExportButtons table={table} />
               </div>
@@ -130,7 +130,7 @@ export default function BackupRestore() {
               type="file"
               accept=".json,.csv,.xlsx,.xls"
               onChange={e => setImportFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-primary-light file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary hover:file:bg-primary-light/70"
             />
             <Button onClick={handleImport} disabled={!importFile || importing}>
               {importing ? 'Importing...' : 'Import'}
@@ -138,10 +138,10 @@ export default function BackupRestore() {
           </div>
 
           {importResult && (
-            <div className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">{importResult}</div>
+            <div className="mt-3 rounded-lg bg-success-light px-3 py-2 text-sm text-success">{importResult}</div>
           )}
           {importError && (
-            <div className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{importError}</div>
+            <div className="mt-3 rounded-lg bg-destructive-light px-3 py-2 text-sm text-destructive">{importError}</div>
           )}
         </CardContent></Card>
       </div>

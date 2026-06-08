@@ -60,8 +60,8 @@ export default function Expenses() {
       setShowForm(false)
       setEditing(null)
       fetch()
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save expense')
     }
   }
 
@@ -72,8 +72,8 @@ export default function Expenses() {
       toast.success('Expense deleted')
       setDeleting(null)
       fetch()
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete expense')
     }
   }
 
@@ -81,7 +81,7 @@ export default function Expenses() {
     <AppLayout>
       <div className="mx-auto max-w-5xl px-4 py-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Expenses</h1>
+        <h1 className="font-display text-3xl tracking-tight">Expenses</h1>
         <Button onClick={() => setShowForm(true)}>
           + Add Expense
         </Button>
@@ -95,19 +95,19 @@ export default function Expenses() {
       ) : summary && (
         <div className="mt-6">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Card className="hover:shadow-md transition-shadow">
+            <Card>
               <CardContent className="p-4">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">This Month</p>
-                <p className="mt-1 text-2xl font-bold text-blue-600">₹{summary.month_total.toLocaleString()}</p>
+                <p className="mt-1 text-2xl font-bold text-primary">₹{summary.month_total.toLocaleString()}</p>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-md transition-shadow">
+            <Card>
               <CardContent className="p-4">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">This Year</p>
-                <p className="mt-1 text-2xl font-bold text-green-600">₹{summary.year_total.toLocaleString()}</p>
+                <p className="mt-1 text-2xl font-bold text-success">₹{summary.year_total.toLocaleString()}</p>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-md transition-shadow">
+            <Card>
               <CardContent className="p-4">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Categories</p>
                 <div className="mt-2 space-y-1">
@@ -201,8 +201,8 @@ export default function Expenses() {
                     {expense.description && <p className="mt-1 text-xs text-muted-foreground truncate">{expense.description}</p>}
                   </div>
                   <div className="flex gap-1 ml-3">
-                    <button onClick={() => { setEditing(expense); setShowForm(true) }} className="text-xs text-blue-600 hover:underline">Edit</button>
-                    <button onClick={() => setDeleting(expense)} className="text-xs text-red-600 hover:underline">Del</button>
+                    <button onClick={() => { setEditing(expense); setShowForm(true) }} className="text-xs text-primary hover:underline">Edit</button>
+                    <button onClick={() => setDeleting(expense)} className="text-xs text-destructive hover:underline">Del</button>
                   </div>
                 </div>
               </CardContent>

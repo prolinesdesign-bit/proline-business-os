@@ -9,15 +9,17 @@ import {
 import { KPISkeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
 
-const STATUS_COLORS: Record<string, string> = {
-  active: '#22c55e',
-  completed: '#3b82f6',
-  on_hold: '#f59e0b',
-  cancelled: '#ef4444',
-}
+const CHART_COLORS = [
+  'var(--color-chart-1)',
+  'var(--color-chart-2)',
+  'var(--color-chart-3)',
+  'var(--color-chart-4)',
+  'var(--color-chart-5)',
+  'var(--color-chart-6)',
+]
 
 function fmt(n: number) {
-  return `₹${Math.round(n).toLocaleString()}`
+  return `\u20B9${Math.round(n).toLocaleString()}`
 }
 
 export default function Analytics() {
@@ -44,12 +46,12 @@ export default function Analytics() {
   }
 
   const metricCards = [
-    { label: 'Total Revenue', value: fmt(data.totalRevenue), color: 'bg-green-500' },
-    { label: 'Total Expenses', value: fmt(data.totalExpenses), color: 'bg-orange-500' },
-    { label: 'Net Profit', value: fmt(data.netProfit), color: data.netProfit >= 0 ? 'bg-green-600' : 'bg-red-600' },
-    { label: 'Outstanding Balance', value: fmt(data.outstandingBalance), color: data.outstandingBalance > 0 ? 'bg-amber-500' : 'bg-emerald-500' },
-    { label: 'Avg Project Value', value: fmt(data.averageProjectValue), color: 'bg-indigo-500' },
-    { label: 'Collection Rate', value: `${data.collectionRate}%`, color: 'bg-purple-500' },
+    { label: 'Total Revenue', value: fmt(data.totalRevenue), color: 'bg-chart-2' },
+    { label: 'Total Expenses', value: fmt(data.totalExpenses), color: 'bg-chart-4' },
+    { label: 'Net Profit', value: fmt(data.netProfit), color: data.netProfit >= 0 ? 'bg-chart-2' : 'bg-chart-6' },
+    { label: 'Outstanding Balance', value: fmt(data.outstandingBalance), color: data.outstandingBalance > 0 ? 'bg-chart-4' : 'bg-chart-2' },
+    { label: 'Avg Project Value', value: fmt(data.averageProjectValue), color: 'bg-chart-3' },
+    { label: 'Collection Rate', value: `${data.collectionRate}%`, color: 'bg-chart-5' },
   ]
 
   const insightCards = [
@@ -69,16 +71,16 @@ export default function Analytics() {
   return (
     <AppLayout>
       <div className="mx-auto max-w-7xl px-4 py-6">
-        <h1 className="mb-6 text-2xl font-bold">Business Analytics</h1>
+        <h1 className="mb-6 font-display text-3xl tracking-tight">Business Analytics</h1>
 
         {/* Metrics */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {metricCards.map(m => (
-            <Card key={m.label}>
+            <Card key={m.label} variant="elevated">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className={`h-3 w-3 rounded-full ${m.color}`} />
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{m.label}</p>
+                  <div className={`h-2 w-2 rounded-full ${m.color}`} />
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{m.label}</p>
                 </div>
                 <p className="mt-2 text-2xl font-bold">{m.value}</p>
               </CardContent>
@@ -91,7 +93,7 @@ export default function Analytics() {
           {insightCards.map(ic => (
             <Card key={ic.label}>
               <CardContent className="p-4">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{ic.label}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{ic.label}</p>
                 <p className={`mt-1 text-lg font-bold ${ic.urgent ? 'text-destructive' : ''}`}>{ic.value}</p>
               </CardContent>
             </Card>
@@ -100,46 +102,46 @@ export default function Analytics() {
 
         {/* Monthly Charts */}
         <div className="mt-8">
-          <h2 className="mb-4 text-lg font-semibold">Monthly Overview</h2>
+          <h2 className="mb-4 font-display text-xl tracking-tight">Monthly Overview</h2>
           <div className="grid gap-6 lg:grid-cols-3">
             <Card>
               <CardContent className="p-4">
-                <h3 className="mb-3 text-sm font-medium text-gray-600">Revenue</h3>
+                <h3 className="mb-3 text-sm font-medium text-muted-foreground">Revenue</h3>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }} />
+                    <YAxis tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }} />
                     <Tooltip />
-                    <Bar dataKey="Revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Revenue" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                <h3 className="mb-3 text-sm font-medium text-gray-600">Expenses</h3>
+                <h3 className="mb-3 text-sm font-medium text-muted-foreground">Expenses</h3>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }} />
+                    <YAxis tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }} />
                     <Tooltip />
-                    <Bar dataKey="Expenses" fill="#f97316" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Expenses" fill="var(--color-chart-4)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                <h3 className="mb-3 text-sm font-medium text-gray-600">Profit</h3>
+                <h3 className="mb-3 text-sm font-medium text-muted-foreground">Profit</h3>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }} />
+                    <YAxis tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }} />
                     <Tooltip />
-                    <Bar dataKey="Profit" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Profit" fill="var(--color-chart-2)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -152,7 +154,7 @@ export default function Analytics() {
           {/* Project Status Distribution */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="mb-3 text-sm font-medium text-gray-600">Project Status Distribution</h3>
+              <h3 className="mb-3 text-sm font-medium text-muted-foreground">Project Status Distribution</h3>
               {data.projectStatusDistribution.length === 0 ? (
                 <EmptyState title="No data" description="No data available for this chart." />
               ) : (
@@ -167,8 +169,8 @@ export default function Analytics() {
                       outerRadius={90}
                       label={({ name, value }) => `${name}: ${value}`}
                     >
-                      {data.projectStatusDistribution.map((entry) => (
-                        <Cell key={entry.name} fill={STATUS_COLORS[entry.name] ?? '#9ca3af'} />
+                      {data.projectStatusDistribution.map((entry, idx) => (
+                        <Cell key={entry.name} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -181,17 +183,17 @@ export default function Analytics() {
           {/* Revenue by Client */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="mb-3 text-sm font-medium text-gray-600">Revenue by Client</h3>
+              <h3 className="mb-3 text-sm font-medium text-muted-foreground">Revenue by Client</h3>
               {data.revenueByClient.length === 0 ? (
                 <EmptyState title="No data" description="No data available for this chart." />
               ) : (
                 <ResponsiveContainer width="100%" height={260}>
                   <BarChart data={data.revenueByClient.slice(0, 8)} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis type="number" tick={{ fontSize: 11 }} />
-                    <YAxis type="category" dataKey="client" tick={{ fontSize: 11 }} width={100} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }} />
+                    <YAxis type="category" dataKey="client" tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }} width={100} />
                     <Tooltip />
-                    <Bar dataKey="revenue" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="revenue" fill="var(--color-chart-5)" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -201,19 +203,19 @@ export default function Analytics() {
           {/* Revenue by Project Status */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="mb-3 text-sm font-medium text-gray-600">Revenue by Project Status</h3>
+              <h3 className="mb-3 text-sm font-medium text-muted-foreground">Revenue by Project Status</h3>
               {data.revenueByProjectStatus.length === 0 ? (
                 <EmptyState title="No data" description="No data available for this chart." />
               ) : (
                 <ResponsiveContainer width="100%" height={260}>
                   <BarChart data={data.revenueByProjectStatus}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="status" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                    <XAxis dataKey="status" tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }} />
+                    <YAxis tick={{ fontSize: 12, fill: 'var(--color-muted-foreground)' }} />
                     <Tooltip />
                     <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
-                      {data.revenueByProjectStatus.map((entry) => (
-                        <Cell key={entry.status} fill={STATUS_COLORS[entry.status] ?? '#9ca3af'} />
+                      {data.revenueByProjectStatus.map((entry, idx) => (
+                        <Cell key={entry.status} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
                       ))}
                     </Bar>
                   </BarChart>

@@ -174,7 +174,7 @@ export default function SiteVisitForm({ siteVisit, onSave, onCancel }: Props) {
                 href={`https://www.google.com/maps?q=${form.latitude},${form.longitude}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 inline-block text-xs text-blue-600 hover:underline"
+                className="mt-1 inline-block text-xs text-primary hover:underline"
               >
                 Open in Google Maps
               </a>

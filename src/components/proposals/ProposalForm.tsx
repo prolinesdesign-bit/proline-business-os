@@ -144,7 +144,7 @@ export default function ProposalForm({ proposal, selectedClient, selectedProject
           {/* Inline New Client Form */}
           {showNewClient && (
             <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-3">
-              <h4 className="mb-2 text-sm font-semibold text-blue-800">New Client</h4>
+              <h4 className="mb-2 text-sm font-semibold text-primary">New Client</h4>
               <ClientForm mode="inline" value={newClientForm} onChange={setNewClientForm} />
               <div className="mt-2 flex justify-end gap-2">
                 <Button

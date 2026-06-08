@@ -51,8 +51,8 @@ export default function Payments() {
       setShowForm(false)
       setEditing(null)
       fetch()
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save payment')
     }
   }
 
@@ -63,8 +63,8 @@ export default function Payments() {
       toast.success('Payment deleted')
       setDeleting(null)
       fetch()
-    } catch (err: any) {
-      toast.error(err.message)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete payment')
     }
   }
 
@@ -74,7 +74,7 @@ export default function Payments() {
     <AppLayout>
       <div className="mx-auto max-w-5xl px-4 py-6">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Payments</h1>
+        <h1 className="font-display text-3xl tracking-tight">Payments</h1>
         <Button onClick={() => setShowForm(true)}>
           + Add Payment
         </Button>
@@ -96,11 +96,11 @@ export default function Payments() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Total Paid</span>
-                      <span className="font-medium text-green-600">₹{s.total_paid.toLocaleString()}</span>
+                      <span className="font-medium text-success">₹{s.total_paid.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between border-t pt-1">
                       <span className="text-muted-foreground">Balance Due</span>
-                      <span className={`font-semibold ${s.balance_due > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                      <span className={`font-semibold ${s.balance_due > 0 ? 'text-destructive' : 'text-success'}`}>
                         ₹{s.balance_due.toLocaleString()}
                       </span>
                     </div>
@@ -173,8 +173,8 @@ export default function Payments() {
                   <div className="flex flex-col items-end gap-1 ml-3">
                     <span className="font-semibold text-foreground">₹{Number(payment.amount).toLocaleString()}</span>
                     <div className="flex gap-1">
-                      <button onClick={() => { setEditing(payment); setShowForm(true) }} className="text-xs text-blue-600 hover:underline">Edit</button>
-                      <button onClick={() => setDeleting(payment)} className="text-xs text-red-600 hover:underline">Del</button>
+                      <button onClick={() => { setEditing(payment); setShowForm(true) }} className="text-xs text-primary hover:underline">Edit</button>
+                      <button onClick={() => setDeleting(payment)} className="text-xs text-destructive hover:underline">Del</button>
                     </div>
                   </div>
                 </div>

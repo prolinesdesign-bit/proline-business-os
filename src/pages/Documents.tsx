@@ -137,7 +137,7 @@ export default function Documents() {
     <AppLayout>
       <div className="mx-auto max-w-5xl px-4 py-6">
         <div className="flex items-center justify-between gap-4 mb-6">
-          <h1 className="text-2xl font-bold">Documents</h1>
+          <h1 className="font-display text-3xl tracking-tight">Documents</h1>
         </div>
 
         {/* Upload card */}
@@ -235,7 +235,7 @@ export default function Documents() {
                         <TableCell className="max-w-[150px] truncate text-muted-foreground">{doc.notes ?? '—'}</TableCell>
                         <TableCell className="whitespace-nowrap text-right">
                           <Button variant="link" size="sm" onClick={() => handlePreview(doc)}>Preview</Button>
-                          <Button variant="link" size="sm" className="ml-3 text-green-600" onClick={() => handleDownload(doc)}>Download</Button>
+                          <Button variant="link" size="sm" className="ml-3 text-success" onClick={() => handleDownload(doc)}>Download</Button>
                           <Button variant="link" size="sm" className="ml-3 text-destructive" onClick={() => setDeleting(doc)}>Delete</Button>
                         </TableCell>
                       </TableRow>
@@ -260,8 +260,8 @@ export default function Documents() {
                           {doc.notes && <p className="mt-1 text-xs text-muted-foreground truncate">{doc.notes}</p>}
                         </div>
                         <div className="flex gap-1 ml-3">
-                          <button onClick={() => handlePreview(doc)} className="text-xs text-blue-600 hover:underline">View</button>
-                          <button onClick={() => setDeleting(doc)} className="text-xs text-red-600 hover:underline">Del</button>
+                          <button onClick={() => handlePreview(doc)} className="text-xs text-primary hover:underline">View</button>
+                          <button onClick={() => setDeleting(doc)} className="text-xs text-destructive hover:underline">Del</button>
                         </div>
                       </div>
                     </CardContent>
